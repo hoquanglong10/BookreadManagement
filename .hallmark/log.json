@@ -2,6 +2,30 @@
   {
     "date": "2026-10-20",
     "scope": "app",
+    "macrostructure": "Featured Carousel / Reader Actions / Horizontal Book Rail / Updates",
+    "theme": "WebNovel Catalog",
+    "enrichment": "Story-specific SVG cover scenes with optional API cover images",
+    "brief": "Aligned the home page to WebNovel.vn's visible layout: compact header, genre menu, search, theme toggle, featured carousel, reading history/login actions, tabbed horizontal covers, and lower release/update sections. Added local reading history and responsive mobile sizing."
+  },
+  {
+    "date": "2026-10-20",
+    "scope": "app",
+    "macrostructure": "Rank Tabs / New Releases / Chapter Updates / Category Rail",
+    "theme": "Webnovel Reading Catalog",
+    "enrichment": "API-backed compact story covers and lists",
+    "brief": "Rebuilt the reader-facing web UI to closely reproduce WebNovel.vn's catalog layout, navigation density, ranking tabs, release lists, and category rail while retaining local API data and project branding."
+  },
+  {
+    "date": "2026-10-20",
+    "scope": "app",
+    "macrostructure": "Shelf + Update Stream / Workbench / Book + Contents / Long Document",
+    "theme": "Night Shelf",
+    "enrichment": "API-backed typographic story covers",
+    "brief": "Migrated the reading web app to React/Vite and rebuilt discovery, reading, account, and admin screens around live book data."
+  },
+  {
+    "date": "2026-10-20",
+    "scope": "app",
     "macrostructure": "Marquee Hero + Reading Shelf / Workbench / Long Document",
     "theme": "Reading Room (custom)",
     "enrichment": "CSS book-cover illustration",

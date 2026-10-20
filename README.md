@@ -1,11 +1,11 @@
 ﻿# BookreadManagement
 
-Đồ án đọc truyện gồm backend ASP.NET Core 8, frontend web HTML/CSS/JavaScript và ứng dụng Android Kotlin/Jetpack Compose. Dữ liệu tài khoản, truyện, chương và thể loại được lưu trong SQL Server.
+Đồ án đọc truyện gồm backend ASP.NET Core 8, frontend React/Vite và ứng dụng Android Kotlin/Jetpack Compose. Dữ liệu tài khoản, truyện, chương và thể loại được lưu trong SQL Server.
 
 ## Thành phần
 
 - [Backend](Backend/README.md): API, JWT, EF Core và migration SQL Server.
-- [Frontend/Web](Frontend/Web/README.md): khám phá, tìm kiếm, chi tiết, đọc truyện và trang admin.
+- [Frontend](Frontend/README.md): web React/Vite, Tailwind, React Router, Axios; khám phá, tìm kiếm, chi tiết, đọc truyện và trang admin.
 - [Mobile](Mobile/README.md): ứng dụng Android Kotlin.
 
 ## Tài liệu dự án
@@ -15,7 +15,7 @@
 
 ## Chạy Web và API
 
-Cần .NET 8 SDK và SQL Server. Trong PowerShell:
+Cần .NET 8 SDK, Node.js và SQL Server. Trong PowerShell, khởi động backend ở terminal thứ nhất:
 
 ```powershell
 cd Backend
@@ -26,12 +26,28 @@ dotnet ef database update
 dotnet run
 ```
 
-Mở:
+Ở terminal thứ hai cài dependencies và chạy Vite:
+
+```powershell
+cd Frontend/WebApp
+npm.cmd install
+npm.cmd run dev
+```
+
+Mở giao diện phát triển tại `http://localhost:5173/app/`. Vite chuyển các yêu cầu `/api` sang backend `http://localhost:5059`.
+
+Để phục vụ bản build qua backend:
+
+```powershell
+cd Frontend/WebApp
+npm.cmd run build
+```
+
+Nếu backend đã chạy từ trước, khởi động lại để nó nhận thư mục build mới. Sau đó mở:
 
 - Web: http://localhost:5059/app/
-- Đăng nhập/đăng ký: http://localhost:5059/app/account.html
-- Admin quản lý truyện/chương: http://localhost:5059/app/admin-stories.html
-- Admin quản lý thể loại: http://localhost:5059/app/admin-genres.html
+- Đăng nhập/đăng ký: http://localhost:5059/app/account
+- Admin: http://localhost:5059/app/admin
 - Swagger: http://localhost:5059/swagger
 
 Tài khoản admin mẫu (nếu bật seed trong môi trường Development) cần cấu hình `SeedAdmin:Password` bằng User Secrets. Không commit connection string, JWT key hay mật khẩu.
@@ -44,5 +60,5 @@ Mở thư mục `Mobile` bằng Android Studio, cài Android SDK 37 nếu IDE y�
 
 - Tìm kiếm truyện theo tên/tác giả, lọc theo thể loại/trạng thái, sắp xếp và phân trang.
 - Xem thông tin truyện, danh sách chương và đọc nội dung chương; có cỡ chữ, chế độ tối, chương trước/sau.
-- Admin thêm/sửa/xóa truyện, chương và thể loại. Nội dung chương, trạng thái miễn phí và lịch phát hành lưu trong database.
+- Admin quản lý truyện, chương, thể loại và tài khoản. Nội dung chương, trạng thái miễn phí và lịch phát hành lưu trong database.
 - Android: đăng nhập, khám phá/tìm truyện, xem chi tiết và đọc chương.

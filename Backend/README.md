@@ -1,6 +1,6 @@
 ﻿# Backend — CustomerManagement.API
 
-ASP.NET Core Web API trên .NET 8, dùng SQL Server, EF Core, JWT và Swagger. Backend phục vụ web tĩnh trong `../Frontend/Web` tại đường dẫn `/app/`.
+ASP.NET Core Web API trên .NET 8, dùng SQL Server, EF Core, JWT và Swagger. Khi đã build React, backend phục vụ ứng dụng trong `../Frontend/WebApp/dist` tại `/app/`. Trong lúc phát triển, chạy React bằng Vite theo hướng dẫn ở [Frontend](../Frontend/README.md).
 
 ## Thiết lập
 

@@ -77,11 +77,11 @@ Backend chịu trách nhiệm xác thực, phân quyền, kiểm tra dữ liệu
 ## 6. Môi trường vận hành và ràng buộc
 
 - Backend hiện nhắm .NET 8, ASP.NET Core Web API, EF Core và SQL Server. Cấu hình kết nối database và khóa JWT phải được đặt ngoài mã nguồn bằng User Secrets hoặc biến môi trường.
-- Web hiện là HTML/CSS/JavaScript thuần, được phục vụ từ Backend; không cần Node/npm để chạy cùng Backend.
+- Web dùng React/Vite; có thể chạy bằng Vite khi phát triển hoặc build rồi để Backend phục vụ dưới `/app/`.
 - Android hiện dùng Kotlin, Jetpack Compose, Retrofit và Android SDK theo cấu hình dự án.
 - API trao đổi JSON qua HTTP(S). Endpoint quản trị dùng JWT Bearer và role Admin.
 - Migration EF Core là cơ chế cập nhật schema database.
-- Product Backlog ghi .NET 10, React/TypeScript/Vite/Tailwind và Room cho Android; các công nghệ đó không khớp hoàn toàn với mã nguồn hiện tại. Cần xác nhận đây là mục tiêu chuyển đổi hay thông tin backlog cũ.
+- Product Backlog ghi .NET 10, React/TypeScript/Vite/Tailwind và Room cho Android; repository hiện dùng .NET 8, React/Vite và Android Retrofit. Cần xác nhận các khác biệt này trước nghiệm thu.
 - README Mobile hướng dẫn địa chỉ emulator 10.0.2.2, trong khi ApiService.kt hiện đặt BASE_URL là 127.0.0.1. Cần thống nhất cấu hình chạy Android trước khi nghiệm thu trên emulator.
 
 ## 7. Giả định và phụ thuộc
@@ -159,6 +159,6 @@ Các yêu cầu dưới đây là mục tiêu chất lượng. Khi chưa ghi “
 - [Yêu cầu chức năng và luồng sử dụng](SRS-Functional-Requirements.md)
 - [Mô hình dữ liệu và hợp đồng API](SRS-Data-and-Interfaces.md)
 - [Ma trận truy vết Product Backlog](SRS-Traceability.md)
-- [Hướng dẫn chạy Backend](../Backend/README.md), [Web](../Frontend/Web/README.md), [Android](../Mobile/README.md)
+- [Hướng dẫn chạy Backend](../Backend/README.md), [Web React](../Frontend/README.md), [Android](../Mobile/README.md)
 
-Các quyết định cần nhóm xác nhận: stack mục tiêu (.NET 8 hay .NET 10; Web thuần hay React); cấu hình URL Android; mức độ ưu tiên từng PB; thanh toán giả lập hay thật; chính sách quyền đọc; nhiều thể loại và ảnh bìa; yêu cầu hiệu năng, sao lưu, bảo mật và khả năng truy cập.
+Các quyết định cần nhóm xác nhận: có cần nâng backend từ .NET 8 lên .NET 10 để khớp Project Information hay không; cấu hình URL Android; mức độ ưu tiên từng PB; thanh toán giả lập hay thật; chính sách quyền đọc; nhiều thể loại và ảnh bìa; yêu cầu hiệu năng, sao lưu, bảo mật và khả năng truy cập. Giao diện web hiện được triển khai bằng React/Vite.

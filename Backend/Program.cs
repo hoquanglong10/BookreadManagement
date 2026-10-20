@@ -92,12 +92,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
-var frontendDirectory = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "Frontend", "Web"));
-if (Directory.Exists(frontendDirectory))
+var reactBuildDirectory = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "Frontend", "WebApp", "dist"));
+var reactIndexPath = Path.Combine(reactBuildDirectory, "index.html");
+var hasReactBuild = Directory.Exists(reactBuildDirectory) && File.Exists(reactIndexPath);
+if (hasReactBuild)
 {
     app.UseFileServer(new FileServerOptions
     {
-        FileProvider = new PhysicalFileProvider(frontendDirectory),
+        FileProvider = new PhysicalFileProvider(reactBuildDirectory),
         RequestPath = "/app",
         EnableDefaultFiles = true
     });
@@ -105,5 +107,13 @@ if (Directory.Exists(frontendDirectory))
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+if (hasReactBuild)
+{
+    app.MapFallback("/app/{*path:nonfile}", async context =>
+    {
+        context.Response.ContentType = "text/html; charset=utf-8";
+        await context.Response.SendFileAsync(reactIndexPath);
+    });
+}
 
 app.Run();

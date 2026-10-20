@@ -43,13 +43,13 @@ Trạng thái dưới đây được suy ra từ việc đọc mã nguồn trong
 | PB37 | Thống kê nội dung | Một phần | Có ViewCount và sort theo lượt đọc; chưa có thống kê theo thời gian, theo dõi, mua hoặc thể loại quan tâm. |
 | PB38 | CSDL, migration EF Core/SQL Server | Đã có | ApplicationDbContext và các EF Core migrations hiện diện. |
 | PB39 | Khung API, Swagger, lỗi, CORS | Một phần | Swagger, CORS, validation cơ bản đã có; định dạng lỗi chưa thống nhất hoàn toàn. |
-| PB40 | Khung Web/Mobile cùng API | Một phần | Web thuần và Android Compose/Retrofit cùng gọi API; backlog mô tả React/Vite và Room nhưng repository khác, URL Android cũng cần thống nhất. |
+| PB40 | Khung Web/Mobile cùng API | Một phần | Web React/Vite và Android Compose/Retrofit cùng gọi API; Room chưa được dùng cho đọc offline, URL Android cũng cần thống nhất. |
 | PB41 | Đọc offline trên Android | Chưa triển khai | Chưa thấy lưu chương Room/cache offline và đồng bộ. |
 | PB42 | Kiểm thử tích hợp và tài liệu API | Một phần | Có Swagger/README; không thấy bộ kiểm thử tích hợp Backend-Web-Mobile trong repository. |
 
 ## Sai khác phạm vi và công nghệ cần xác nhận
 
-1. Project Information trong Excel ghi Backend .NET 10, Web React + TypeScript + Vite + Tailwind, Mobile có Room. Repository hiện dùng .NET 8, Web HTML/CSS/JavaScript thuần, Android Retrofit; chưa thấy Room được dùng cho đọc offline.
+1. Project Information trong Excel ghi Backend .NET 10, Web React + TypeScript + Vite + Tailwind, Mobile có Room. Repository hiện dùng .NET 8, Web React/Vite, Android Retrofit; chưa thấy Room được dùng cho đọc offline.
 2. Product Backlog bao gồm quyền truy cập trả phí, gói, thanh toán, theo dõi, thảo luận và thống kê; các nhóm này chưa hiện diện trong schema/API hiện tại.
 3. Story hiện lưu một chuỗi tên thể loại và chưa có ảnh bìa tải lên; backlog yêu cầu nhiều thể loại và ảnh bìa.
 4. Mô hình Customer hiện có CRUD, nhưng không liên kết User; không nên tính CRUD Customer là hoàn thành quản trị thành viên.
