@@ -90,7 +90,21 @@ public class AuthController(ApplicationDbContext context, IConfiguration configu
         {
             token = new JwtSecurityTokenHandler().WriteToken(token),
             expiresIn = expiresInMinutes * 60,
-            user = new { user.Id, user.Username, user.Email, user.Role }
+            expiresAt = token.ValidTo,
+            user = new { user.Id, user.Username, user.Email, DisplayName = user.Username, user.Role }
         });
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> Me(CancellationToken cancellationToken)
+    {
+        var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(idValue, out var id)) return Unauthorized();
+        var user = await context.Users.AsNoTracking()
+            .Where(item => item.Id == id)
+            .Select(item => new { item.Id, item.Username, item.Email, DisplayName = item.Username, item.Role })
+            .SingleOrDefaultAsync(cancellationToken);
+        return user is null ? NotFound(new { message = "Không tìm thấy tài khoản." }) : Ok(user);
     }
 }

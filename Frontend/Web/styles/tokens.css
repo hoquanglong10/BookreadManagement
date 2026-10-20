@@ -1,0 +1,107 @@
+/* Hallmark · pre-emit critique: P4 H5 E4 S5 R5 V4 */
+/* Hallmark · theme: Reading Room · genre: editorial · designed-as-app */
+@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap");
+
+:root,
+[data-theme="almanac"] {
+  color-scheme: light;
+  --color-paper: oklch(97% 0.012 85);
+  --color-paper-2: oklch(94% 0.016 80);
+  --color-paper-3: oklch(89% 0.020 80);
+  --color-rule: oklch(84% 0.020 82);
+  --color-rule-2: oklch(47% 0.035 185);
+  --color-muted: oklch(46% 0.035 190);
+  --color-neutral: oklch(30% 0.040 190);
+  --color-ink-2: oklch(24% 0.040 190);
+  --color-ink: oklch(20% 0.045 190);
+  --color-accent: oklch(42% 0.100 190);
+  --color-accent-ink: oklch(98% 0.010 84);
+  --color-highlight: oklch(66% 0.115 48);
+  --color-focus: oklch(42% 0.100 190);
+  --color-focus-ring: oklch(42% 0.100 190 / 0.18);
+  --color-danger: oklch(51% 0.16 25);
+  --color-success: oklch(47% 0.12 150);
+  --color-backdrop: oklch(20% 0.045 190 / 0.55);
+  --color-hero-wash: oklch(92% 0.030 145);
+  --color-cover-ink: oklch(98% 0.012 85);
+  --color-cover-dark-ink: oklch(22% 0.045 190);
+  --cover-teal: oklch(40% 0.095 190);
+  --cover-indigo: oklch(42% 0.105 265);
+  --cover-rose: oklch(54% 0.125 20);
+  --cover-amber: oklch(73% 0.105 68);
+  --cover-sage: oklch(54% 0.085 145);
+  --cover-slate: oklch(45% 0.045 240);
+  --color-cover-spine: oklch(32% 0.090 190);
+  --color-highlight-spine: oklch(52% 0.100 51);
+
+  --font-display: "Newsreader", Georgia, serif;
+  --font-body: "Hanken Grotesk", "Segoe UI", sans-serif;
+  --font-reading: "Newsreader", Georgia, serif;
+  --font-label: "Hanken Grotesk", "Segoe UI", sans-serif;
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.875rem;
+  --text-display: clamp(2rem, 3.2vw, 3.25rem);
+
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4.5rem;
+  --space-4xl: 6rem;
+
+  --measure: 64ch;
+  --page-max: 82rem;
+  --rule-hair: 1px;
+  --radius-card: 0.8rem;
+  --radius-input: 0.55rem;
+  --shadow-raised: 0 18px 42px oklch(28% 0.045 190 / 0.16);
+  --shadow-search: 0 2px 9px oklch(26% 0.040 190 / 0.05);
+  --shadow-card: 0 5px 18px oklch(29% 0.040 190 / 0.055);
+  --shadow-book: 0 18px 32px oklch(24% 0.045 190 / 0.20);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-short: 180ms;
+  --dur-long: 320ms;
+  --banner-height: 4.5rem;
+  --z-raised: 10;
+  --z-sticky: 200;
+  --z-sticky-nav: 300;
+  --z-modal: 400;
+}
+
+.reader-dark {
+  color-scheme: dark;
+  --color-paper: oklch(19% 0.025 190);
+  --color-paper-2: oklch(23% 0.030 190);
+  --color-paper-3: oklch(29% 0.035 190);
+  --color-rule: oklch(36% 0.028 190);
+  --color-rule-2: oklch(62% 0.025 190);
+  --color-muted: oklch(72% 0.025 185);
+  --color-neutral: oklch(80% 0.020 185);
+  --color-ink-2: oklch(88% 0.016 85);
+  --color-ink: oklch(96% 0.010 85);
+  --color-accent: oklch(76% 0.090 175);
+  --color-accent-ink: oklch(20% 0.045 190);
+  --color-highlight: oklch(76% 0.115 52);
+  --color-focus: oklch(76% 0.090 175);
+  --color-focus-ring: oklch(76% 0.090 175 / 0.24);
+  --color-backdrop: oklch(8% 0.025 190 / 0.62);
+  --color-hero-wash: oklch(28% 0.040 185);
+  --color-cover-ink: oklch(98% 0.012 85);
+  --color-cover-dark-ink: oklch(22% 0.045 190);
+  --color-cover-spine: oklch(29% 0.050 190);
+  --color-highlight-spine: oklch(52% 0.100 51);
+  --shadow-raised: 0 18px 48px oklch(5% 0.025 190 / 0.4);
+  --shadow-search: 0 2px 9px oklch(5% 0.025 190 / 0.25);
+  --shadow-card: 0 5px 18px oklch(5% 0.025 190 / 0.25);
+  --shadow-book: 0 18px 32px oklch(5% 0.025 190 / 0.55);
+}

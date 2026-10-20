@@ -30,8 +30,22 @@ namespace CustomerManagement.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsFree")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<int>("Number")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("PublishAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<int>("StoryId")
                         .HasColumnType("int");
@@ -40,6 +54,9 @@ namespace CustomerManagement.API.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -81,6 +98,27 @@ namespace CustomerManagement.API.Migrations
                     b.ToTable("Customers");
                 });
 
+            modelBuilder.Entity("CustomerManagement.API.Models.Genre", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Genres");
+                });
+
             modelBuilder.Entity("CustomerManagement.API.Models.Story", b =>
                 {
                     b.Property<int>("Id")
@@ -89,16 +127,48 @@ namespace CustomerManagement.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Author").IsRequired().HasMaxLength(120).HasColumnType("nvarchar(120)");
-                    b.Property<string>("CoverTheme").IsRequired().HasMaxLength(30).HasColumnType("nvarchar(30)");
-                    b.Property<string>("Description").IsRequired().HasMaxLength(3000).HasColumnType("nvarchar(3000)");
-                    b.Property<string>("Genre").IsRequired().HasMaxLength(80).HasColumnType("nvarchar(80)");
-                    b.Property<DateTime>("PublishedAt").HasColumnType("datetime2");
-                    b.Property<string>("Status").IsRequired().HasMaxLength(30).HasColumnType("nvarchar(30)");
-                    b.Property<string>("Title").IsRequired().HasMaxLength(200).HasColumnType("nvarchar(200)");
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("CoverTheme")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(3000)
+                        .HasColumnType("nvarchar(3000)");
+
+                    b.Property<string>("Genre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime>("PublishedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.HasKey("Id");
+
                     b.HasIndex("Title");
+
                     b.ToTable("Stories");
                 });
 
@@ -143,6 +213,7 @@ namespace CustomerManagement.API.Migrations
 
                     b.ToTable("Users");
                 });
+
             modelBuilder.Entity("CustomerManagement.API.Models.Chapter", b =>
                 {
                     b.HasOne("CustomerManagement.API.Models.Story", "Story")
@@ -150,6 +221,7 @@ namespace CustomerManagement.API.Migrations
                         .HasForeignKey("StoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
                     b.Navigation("Story");
                 });
 

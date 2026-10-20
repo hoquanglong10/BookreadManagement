@@ -92,7 +92,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
-var frontendDirectory = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "Frontend"));
+var frontendDirectory = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "Frontend", "Web"));
 if (Directory.Exists(frontendDirectory))
 {
     app.UseFileServer(new FileServerOptions

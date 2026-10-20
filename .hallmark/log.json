@@ -1,0 +1,10 @@
+[
+  {
+    "date": "2026-10-20",
+    "scope": "app",
+    "macrostructure": "Marquee Hero + Reading Shelf / Workbench / Long Document",
+    "theme": "Reading Room (custom)",
+    "enrichment": "CSS book-cover illustration",
+    "brief": "Reworked the reading app into a warm bookshop-inspired experience with typographic covers, a prominent catalog, and distinct reader/admin layouts."
+  }
+]

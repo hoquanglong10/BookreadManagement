@@ -10,5 +10,6 @@ public class Story
     public string Status { get; set; } = string.Empty;
     public string CoverTheme { get; set; } = string.Empty;
     public DateTime PublishedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public List<Chapter> Chapters { get; set; } = [];
 }

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f5ed">
+  <title>Quản lý thể loại | Đọc Truyện</title>
+  <link rel="stylesheet" href="./styles/tokens.css?v=reading-room-2">
+  <link rel="stylesheet" href="./styles/base.css?v=reading-room-2">
+  <link rel="stylesheet" href="./styles/admin.css?v=reading-room-2">
+  <script type="module" src="./js/pages/admin-genres.js?v=reading-room-2"></script>
+</head>
+<body class="story-admin" data-theme="reading-room">
+  <div class="site-shell admin-page">
+    <header class="topbar admin-topbar">
+      <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">Đ</span><span>Đọc Truyện</span></a>
+      <div class="header-actions"><span class="admin-pill">Quản trị viên</span><span id="admin-name" class="admin-name"></span><button id="logout-button" class="header-logout" type="button">Đăng xuất</button></div>
+    </header>
+    <nav class="admin-mobile-nav" aria-label="Điều hướng quản trị"><a href="./admin.html">Khách hàng</a><a href="./admin-stories.html">Sách / truyện</a><a class="active" href="./admin-genres.html">Thể loại</a></nav>
+    <main class="admin-layout">
+      <aside class="sidebar" aria-label="Điều hướng quản trị">
+        <div class="sidebar-title">QUẢN TRỊ</div>
+        <a class="side-link" href="./admin.html"><span class="side-index" aria-hidden="true">01</span> Khách hàng</a>
+        <a class="side-link" href="./admin-stories.html"><span class="side-index" aria-hidden="true">02</span> Sách / truyện</a>
+        <a class="side-link active" href="./admin-genres.html"><span class="side-index" aria-hidden="true">03</span> Thể loại</a>
+      </aside>
+      <section class="workspace" aria-labelledby="page-title">
+        <div class="page-intro"><div><span class="eyebrow">03 / PHÂN LOẠI</span><h1 id="page-title">Quản lý thể loại</h1><p>Thêm, sửa hoặc xóa nhóm truyện trong thư viện.</p></div></div>
+        <div class="summary-row"><div class="summary-card"><div><span>Tổng thể loại</span><strong id="genre-count">—</strong></div></div></div>
+        <div id="genre-notice" class="admin-notice" role="status" aria-live="polite" hidden></div>
+        <form id="genre-form" class="genre-form" novalidate>
+          <label for="genre-name">Tên thể loại</label>
+          <input id="genre-name" name="name" type="text" maxlength="80" placeholder="Ví dụ: Phiêu lưu" required>
+          <button id="genre-save" class="admin-primary" type="submit">Thêm thể loại</button>
+          <button id="genre-cancel" class="admin-secondary" type="button" hidden>Hủy sửa</button>
+        </form>
+        <div id="genre-empty" class="empty-state" hidden>Chưa có thể loại nào. Thêm thể loại đầu tiên ở trên.</div>
+        <div class="table-wrap"><table id="genre-table" class="admin-table" hidden>
+          <thead><tr><th>Thể loại</th><th>Số truyện</th><th>Thao tác</th></tr></thead>
+          <tbody id="genre-rows"></tbody>
+        </table></div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

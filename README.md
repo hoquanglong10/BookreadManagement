@@ -1,13 +1,19 @@
-# BookreadManagement
+﻿# BookreadManagement
 
-Ứng dụng đọc truyện gồm API ASP.NET Core 8 và giao diện HTML/CSS/JavaScript. API dùng SQL Server để lưu tài khoản, truyện và chương; giao diện được API phục vụ tại `/app/`.
+Đồ án đọc truyện gồm backend ASP.NET Core 8, frontend web HTML/CSS/JavaScript và ứng dụng Android Kotlin/Jetpack Compose. Dữ liệu tài khoản, truyện, chương và thể loại được lưu trong SQL Server.
 
-## Cấu trúc
+## Thành phần
 
-- `Backend/`: API, Entity Framework Core migrations và hướng dẫn cấu hình.
-- `Frontend/`: trang khám phá, tìm truyện, chi tiết truyện, tài khoản và quản trị.
+- [Backend](Backend/README.md): API, JWT, EF Core và migration SQL Server.
+- [Frontend/Web](Frontend/Web/README.md): khám phá, tìm kiếm, chi tiết, đọc truyện và trang admin.
+- [Mobile](Mobile/README.md): ứng dụng Android Kotlin.
 
-## Chạy trên máy cá nhân
+## Tài liệu dự án
+
+- [Đặc tả yêu cầu phần mềm (SRS)](Docs/SRS.md)
+- [Danh mục tài liệu, yêu cầu chức năng, dữ liệu/API và ma trận truy vết](Docs/README.md)
+
+## Chạy Web và API
 
 Cần .NET 8 SDK và SQL Server. Trong PowerShell:
 
@@ -17,9 +23,26 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=<SQL_SERVE
 dotnet user-secrets set "Jwt:Key" "<RANDOM_SECRET_AT_LEAST_32_BYTES>"
 dotnet tool restore
 dotnet ef database update
-dotnet run --launch-profile http
+dotnet run
 ```
 
-Mở `http://localhost:5059/app/` để xem truyện, tìm theo tên và mở chi tiết. Mở `http://localhost:5059/app/account.html` để đăng ký/đăng nhập. Tài khoản Admin có thể quản lý khách hàng ở `/app/admin.html` và truyện, chương ở `/app/admin-stories.html`.
+Mở:
 
-Xem [hướng dẫn Backend](Backend/README.md) và [cấu trúc Frontend](Frontend/README.md) để biết thêm về API và cách tổ chức mã nguồn. Không commit connection string, JWT key hoặc mật khẩu; các giá trị này được cấu hình bằng .NET User Secrets hoặc biến môi trường.
+- Web: http://localhost:5059/app/
+- Đăng nhập/đăng ký: http://localhost:5059/app/account.html
+- Admin quản lý truyện/chương: http://localhost:5059/app/admin-stories.html
+- Admin quản lý thể loại: http://localhost:5059/app/admin-genres.html
+- Swagger: http://localhost:5059/swagger
+
+Tài khoản admin mẫu (nếu bật seed trong môi trường Development) cần cấu hình `SeedAdmin:Password` bằng User Secrets. Không commit connection string, JWT key hay mật khẩu.
+
+## Chạy Android
+
+Mở thư mục `Mobile` bằng Android Studio, cài Android SDK 37 nếu IDE yêu cầu, rồi chạy app trên Android Emulator. Khởi động Backend trước. Emulator đã cấu hình gọi API tại `http://10.0.2.2:5059/` (địa chỉ localhost của máy host từ emulator). Nếu chạy trên điện thoại thật, đổi base URL trong `Mobile/app/src/main/java/com/huflit/quanlydoctruyen/data/ApiService.kt` thành địa chỉ LAN của máy đang chạy backend, ví dụ `http://192.168.1.20:5059/`, và bảo đảm firewall cho phép kết nối.
+
+## Chức năng hiện có
+
+- Tìm kiếm truyện theo tên/tác giả, lọc theo thể loại/trạng thái, sắp xếp và phân trang.
+- Xem thông tin truyện, danh sách chương và đọc nội dung chương; có cỡ chữ, chế độ tối, chương trước/sau.
+- Admin thêm/sửa/xóa truyện, chương và thể loại. Nội dung chương, trạng thái miễn phí và lịch phát hành lưu trong database.
+- Android: đăng nhập, khám phá/tìm truyện, xem chi tiết và đọc chương.

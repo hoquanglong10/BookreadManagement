@@ -9,6 +9,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<User> Users => Set<User>();
     public DbSet<Story> Stories => Set<Story>();
     public DbSet<Chapter> Chapters => Set<Chapter>();
+    public DbSet<Genre> Genres => Set<Genre>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,12 +26,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             story.Property(x => x.Status).HasMaxLength(30).IsRequired();
             story.Property(x => x.CoverTheme).HasMaxLength(30).IsRequired();
             story.HasIndex(x => x.Title);
+            story.Property(x => x.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
         });
         modelBuilder.Entity<Chapter>(chapter =>
         {
             chapter.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            chapter.Property(x => x.Content).IsRequired();
+            chapter.Property(x => x.IsFree).HasDefaultValue(true);
+            chapter.Property(x => x.PublishAt).HasDefaultValueSql("GETUTCDATE()");
             chapter.HasIndex(x => new { x.StoryId, x.Number }).IsUnique();
             chapter.HasOne(x => x.Story).WithMany(x => x.Chapters).HasForeignKey(x => x.StoryId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<Genre>(genre =>
+        {
+            genre.Property(x => x.Name).HasMaxLength(80).IsRequired();
+            genre.HasIndex(x => x.Name).IsUnique();
         });
     }
 }
