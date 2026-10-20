@@ -5,6 +5,7 @@ using CustomerManagement.API.Repositories;
 using CustomerManagement.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -19,6 +20,10 @@ if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddCors(options => options.AddPolicy("Frontend", policy => policy
+    .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddScoped<CustomerRepository>();
 builder.Services.AddScoped<CustomerService>();
@@ -72,12 +77,9 @@ if (app.Environment.IsDevelopment())
     // The sample account is created only after migrations have been applied.
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    if (!await context.Users.AnyAsync(user => user.Username == "admin"))
+    var samplePassword = app.Configuration["SeedAdmin:Password"];
+    if (!string.IsNullOrWhiteSpace(samplePassword) && !await context.Users.AnyAsync(user => user.Username == "admin"))
     {
-        var samplePassword = app.Configuration["SeedAdmin:Password"];
-        if (string.IsNullOrWhiteSpace(samplePassword))
-            throw new InvalidOperationException("Set SeedAdmin:Password using user secrets or an environment variable.");
-
         context.Users.Add(new User
         {
             Username = "admin",
@@ -89,6 +91,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("Frontend");
+var frontendDirectory = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "Frontend"));
+if (Directory.Exists(frontendDirectory))
+{
+    app.UseFileServer(new FileServerOptions
+    {
+        FileProvider = new PhysicalFileProvider(frontendDirectory),
+        RequestPath = "/app",
+        EnableDefaultFiles = true
+    });
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

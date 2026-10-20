@@ -1,0 +1,30 @@
+.story-name { display: block; color: #2b4d4d; font-size: 13px; font-weight: 800; }
+.story-author { display: block; margin-top: 5px; color: #9aa9a1; font-size: 11px; }
+.story-status { display: inline-block; padding: 6px 9px; border-radius: 999px; background: #edf6ef; color: #32725c; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.story-status.complete { background: #f8efe3; color: #95693d; }
+.story-count-cell { font-weight: 700; white-space: nowrap; }
+.story-dialog { width: min(600px, calc(100% - 28px)); max-height: min(90vh, 850px); overflow-y: auto; }
+.chapters-dialog { width: min(660px, calc(100% - 28px)); max-height: min(90vh, 850px); overflow-y: auto; }
+.story-dialog .admin-notice, .chapters-dialog .admin-notice { margin-left: 28px; margin-right: 28px; }
+.dialog-fields textarea, .dialog-fields select { width: 100%; border: 1px solid #e2e9e5; border-radius: 9px; outline: none; color: #233c3e; background: #fbfcfa; font: 13px 'Segoe UI', Arial, sans-serif; }
+.dialog-fields textarea { min-height: 115px; padding: 13px 14px; margin-bottom: 17px; resize: vertical; line-height: 1.6; }
+.dialog-fields select { height: 46px; padding: 0 11px; margin-bottom: 17px; }
+.dialog-fields textarea:focus, .dialog-fields select:focus { border-color: #3c8887; box-shadow: 0 0 0 3px #3c888720; }
+.field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.field-pair > div { min-width: 0; }
+.field-pair label { display: block; }
+.dialog-subtitle { margin: 7px 0 0; color: #8b9c93; font-size: 12px; }
+.admin-chapter-list { max-height: 290px; min-height: 65px; overflow-y: auto; margin: 20px 28px; border: 1px solid #e9ede8; border-radius: 10px; }
+.chapter-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border-bottom: 1px solid #edf1eb; }
+.chapter-row:last-child { border-bottom: 0; }
+.chapter-row-info { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.chapter-row-info strong { color: #2d5958; font-size: 11px; }
+.chapter-row-info span { overflow-wrap: anywhere; color: #647870; font-size: 12px; }
+.chapter-row .row-actions { flex: none; }
+.chapter-empty { padding: 22px 15px; color: #96a39a; font-size: 12px; text-align: center; }
+.chapter-fields { border-top: 1px solid #eff2ed; padding-top: 17px; }
+.chapter-fields h3 { margin: 0 0 17px; color: #2c5050; font: 700 19px Georgia, serif; }
+.chapter-inputs { grid-template-columns: 145px minmax(0, 1fr); }
+.chapters-dialog .dialog-actions { padding-top: 0; }
+@media (max-width: 950px) { .story-admin .summary-row { flex-wrap: wrap; } }
+@media (max-width: 650px) { .story-dialog .dialog-header, .chapters-dialog .dialog-header { padding: 20px 20px 16px; }.story-dialog .dialog-fields, .chapters-dialog .dialog-fields { padding-left: 20px; padding-right: 20px; }.story-dialog .dialog-actions, .chapters-dialog .dialog-actions { padding-left: 20px; padding-right: 20px; }.story-dialog .admin-notice, .chapters-dialog .admin-notice { margin-left: 20px; margin-right: 20px; }.admin-chapter-list { margin-left: 20px; margin-right: 20px; }.field-pair { grid-template-columns: 1fr; gap: 0; }.chapter-inputs { grid-template-columns: 95px minmax(0, 1fr); gap: 10px; }.chapter-row { align-items: start; flex-direction: column; }.chapter-row .row-actions { align-self: flex-end; }.story-dialog, .chapters-dialog { max-height: calc(100vh - 24px); } }

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f5ef">
+  <title>Chi tiết truyện | Đọc Truyện</title>
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/catalog.css">
+  <script type="module" src="./js/pages/story.js"></script>
+</head>
+<body class="catalog-page">
+  <div class="site-shell">
+    <header class="topbar catalog-topbar">
+      <a class="brand" href="./" aria-label="Đọc Truyện - trang chủ"><span class="brand-mark" aria-hidden="true">✦</span><span>Đọc<span class="brand-accent">Truyện</span></span></a>
+      <form id="detail-search-form" class="header-search" role="search" aria-label="Tìm truyện">
+        <label class="sr-only" for="detail-search-input">Tìm truyện theo tên</label>
+        <svg class="header-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+        <input id="detail-search-input" type="search" placeholder="Tìm truyện theo tên..." autocomplete="off" maxlength="200">
+        <button type="submit">Tìm</button>
+      </form>
+      <nav class="catalog-nav" aria-label="Điều hướng chính"><a href="./">Khám phá</a><a href="./#stories">Thư viện truyện</a></nav>
+      <div class="account-actions"><a href="./account.html">Tài khoản</a></div>
+    </header>
+    <main class="detail-shell">
+      <a class="back-link" href="./#stories">← Quay lại thư viện truyện</a>
+      <div id="detail-status" class="catalog-status" role="status" aria-live="polite"><strong>Đang mở truyện</strong>Vui lòng chờ trong giây lát...</div>
+      <div id="detail-content" hidden>
+        <section class="detail-hero" aria-labelledby="story-title">
+          <div id="detail-cover" class="story-cover detail-cover"><span class="cover-kicker">ĐỌC TRUYỆN · TUYỂN TẬP</span><span id="cover-title" class="cover-title"></span></div>
+          <div class="detail-info">
+            <span class="eyebrow">CÂU CHUYỆN DÀNH CHO BẠN</span>
+            <h1 id="story-title"></h1>
+            <p id="story-author" class="detail-author"></p>
+            <div class="detail-facts"><span id="story-genre"></span><span id="story-status"></span><span id="story-chapter-count"></span></div>
+            <h2>Giới thiệu</h2><p id="story-description" class="detail-description"></p>
+          </div>
+        </section>
+        <section class="chapters-section" aria-labelledby="chapters-title">
+          <div class="chapters-heading"><h2 id="chapters-title">Danh sách chương</h2><p>Khám phá hành trình qua từng chương.</p></div>
+          <ol id="chapter-list" class="chapter-list"></ol>
+        </section>
+      </div>
+    </main>
+    <footer>© 2026 Đọc Truyện <span>✦</span> Câu chuyện tiếp theo đang chờ bạn.</footer>
+  </div>
+</body>
+</html>
