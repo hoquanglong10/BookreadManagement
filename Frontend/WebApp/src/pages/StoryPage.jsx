@@ -70,16 +70,33 @@ export default function StoryPage() {
   const lastReadEpisode = episodes.find(episode => Number(episode.number) === Number(story.lastReadNumber || localProgress?.chapterNumber));
   const canContinue = Boolean(lastReadEpisode && lastReadEpisode.hasContent !== false && lastReadEpisode.canRead !== false);
   const continueEpisode = canContinue ? lastReadEpisode : firstReadable;
+  const genreNames = story.genres?.length
+    ? story.genres.map(genre => typeof genre === "string" ? genre : genre.name).filter(Boolean)
+    : story.genre ? [story.genre] : [];
+  const accessSummary = story.accessType === "Free" ? "Miễn phí"
+    : story.accessType === "Mixed" ? `Kết hợp · ${story.freeChapterCount} chương đầu miễn phí`
+      : `Trả phí · ${money(story.price)}`;
 
   return <div className="story-detail-page">
     <nav className="breadcrumbs" aria-label="Đường dẫn"><Link to="/">Khám phá</Link><span aria-hidden="true">/</span><span>{story.genre || "Truyện"}</span><span aria-hidden="true">/</span><span className="breadcrumbs__current">{story.title}</span></nav>
     <section className="story-detail">
       <div className="story-detail__cover"><StoryCover story={story} size="detail" /></div>
       <div className="story-detail__main">
-        <p className="eyebrow">{story.genres?.length ? story.genres.map(genre => genre.name).join(" · ") : story.genre || "TRUYỆN DÀI KỲ"} <span className="eyebrow__rule" /></p>
+        <div className="story-detail__genres">
+          <span className="story-detail__genres-label">Thể loại</span>
+          <div className="story-detail__genre-list">
+            {genreNames.length ? genreNames.map((genre, index) => <span className="story-detail__genre-tag" key={`${genre}-${index}`}>{genre}</span>) : <span className="story-detail__genre-tag">Truyện dài kỳ</span>}
+          </div>
+        </div>
         <h1>{story.title}</h1>
-        <p className="story-detail__author">Tác giả <strong>{story.author}</strong></p>
-        <div className="story-detail__tags"><span>{displayStatus(story.status)}</span><span>{groups.length} chương · {episodes.length} tập</span><span>{story.accessType === "Free" ? "Miễn phí" : story.accessType === "Mixed" ? `Kết hợp · ${story.freeChapterCount} chương đầu miễn phí` : `Trả phí · ${money(story.price)}`}</span>{story.updatedAt && <span>Cập nhật {formatDate(story.updatedAt)}</span>}</div>
+        <dl className="story-detail__facts">
+          <div className="story-detail__fact"><dt>Tác giả</dt><dd>{story.author || "Đang cập nhật"}</dd></div>
+          <div className="story-detail__fact"><dt>Trạng thái</dt><dd>{displayStatus(story.status)}</dd></div>
+          <div className="story-detail__fact"><dt>Số chương</dt><dd>{groups.length}</dd></div>
+          <div className="story-detail__fact"><dt>Số tập</dt><dd>{episodes.length}</dd></div>
+          <div className="story-detail__fact"><dt>Quyền đọc</dt><dd>{accessSummary}</dd></div>
+          {story.updatedAt && <div className="story-detail__fact"><dt>Cập nhật</dt><dd>{formatDate(story.updatedAt)}</dd></div>}
+        </dl>
         <div className="story-detail__actions">
           {continueEpisode ? <Link className="button button--primary" to={`/read/${story.id}/${continueEpisode.number}`}>{canContinue ? "Đọc tiếp" : "Đọc từ đầu"} <span aria-hidden="true">→</span></Link> : <button className="button button--primary" type="button" disabled>Chưa có tập để đọc</button>}
           <a className="text-link" href="#chapter-list">Đến mục lục ↓</a>

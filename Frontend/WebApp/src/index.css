@@ -1215,3 +1215,170 @@ body { background: var(--color-paper); color: var(--color-ink); }
   .reader-home { grid-column: 2; grid-row: 1; }
   .reader-back { grid-column: 1; grid-row: 1; }
 }
+
+/* Hallmark · catalog interaction pass · motion clarifies focus and selection */
+.webnovel-spotlight__card {
+  filter: none;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+  transition: transform var(--dur-carousel) var(--ease-out), opacity var(--dur-carousel) var(--ease-out);
+}
+.webnovel-spotlight__card > span,
+.webnovel-spotlight__card > strong {
+  transform: translateY(0);
+  transition: transform var(--dur-medium) var(--ease-out), opacity var(--dur-medium) var(--ease-out);
+}
+.webnovel-spotlight__card:not(.webnovel-spotlight__card--active) > span,
+.webnovel-spotlight__card:not(.webnovel-spotlight__card--active) > strong {
+  opacity: 0;
+  transform: translateY(0.4rem);
+}
+.webnovel-spotlight__stage {
+  --spotlight-side-one: 16rem;
+  --spotlight-side-two: 26rem;
+  --spotlight-scale-one: 0.84;
+  --spotlight-scale-two: 0.68;
+}
+.webnovel-spotlight__card--active { transform: translate3d(-50%, -50%, 0) scale(1); }
+.webnovel-spotlight__card--left-1 { transform: translate3d(calc(-50% - var(--spotlight-side-one)), -50%, 0) scale(var(--spotlight-scale-one)); }
+.webnovel-spotlight__card--right-1 { transform: translate3d(calc(-50% + var(--spotlight-side-one)), -50%, 0) scale(var(--spotlight-scale-one)); }
+.webnovel-spotlight__card--left-2 { transform: translate3d(calc(-50% - var(--spotlight-side-two)), -50%, 0) scale(var(--spotlight-scale-two)); }
+.webnovel-spotlight__card--right-2 { transform: translate3d(calc(-50% + var(--spotlight-side-two)), -50%, 0) scale(var(--spotlight-scale-two)); }
+.webnovel-spotlight__arrow {
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.webnovel-spotlight__arrow:hover { transform: translateY(-50%) scale(1.04); }
+.webnovel-spotlight__arrow:active { transform: translateY(-50%) scale(0.96); }
+.webnovel-book-rail__arrow {
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.webnovel-book-rail__arrow:hover { transform: translateY(-50%) scale(1.04); }
+.webnovel-book-rail__arrow:active { transform: translateY(-50%) scale(0.96); }
+.webnovel-book-rail-wrap:focus-within .webnovel-book-rail__arrow--prev { opacity: 1; }
+
+.webnovel-book__cover,
+.webnovel-result-book,
+.webnovel-home-actions a {
+  transition: transform var(--dur-medium) var(--ease-out);
+}
+.site-theme-toggle span,
+.site-header__genre-picker > button svg {
+  transition: transform var(--dur-medium) var(--ease-out);
+}
+.site-header__genre-picker > button[aria-expanded="true"] svg { transform: rotate(180deg); }
+.site-search button,
+.site-login-pill { transition: transform var(--dur-short) var(--ease-out); }
+.site-search button:active,
+.site-login-pill:active { transform: scale(0.97); }
+.site-nav > a:not(.button),
+.site-header__genres a,
+.site-account__plans,
+.site-profile-link,
+.webnovel-book__title,
+.webnovel-section-heading > a,
+.webnovel-genre-list a,
+.webnovel-update__title { transition: color var(--dur-short) var(--ease-out); }
+.webnovel-book__cover .story-cover__image,
+.webnovel-book__cover .story-artwork,
+.webnovel-result-book > a:first-child .story-cover__image,
+.webnovel-result-book > a:first-child .story-artwork {
+  transition: transform var(--dur-medium) var(--ease-out);
+}
+.webnovel-book:active .webnovel-book__cover,
+.webnovel-result-book:active,
+.webnovel-home-actions a:active { transform: scale(0.985); }
+.webnovel-home-actions__arrow { transition: transform var(--dur-medium) var(--ease-out); }
+
+.webnovel-tabs button {
+  position: relative;
+  transition: color var(--dur-medium) var(--ease-out);
+}
+.webnovel-tabs button::after {
+  position: absolute;
+  right: var(--space-sm);
+  bottom: -1px;
+  left: var(--space-sm);
+  height: 2px;
+  background: var(--color-accent-dark);
+  content: "";
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--dur-medium) var(--ease-out);
+}
+.webnovel-tabs button.is-active { border-bottom-color: transparent; }
+.webnovel-tabs button.is-active::after { transform: scaleX(1); }
+.site-header__genre-menu { animation: catalog-menu-enter var(--dur-medium) var(--ease-out) both; }
+@keyframes catalog-menu-enter {
+  from { opacity: 0; transform: translateY(-0.3rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .webnovel-book:hover .webnovel-book__cover,
+  .webnovel-book:focus-within .webnovel-book__cover { transform: translateY(-0.22rem); }
+  .webnovel-result-book:hover,
+  .webnovel-result-book:focus-within { transform: translateY(-0.15rem); }
+  .webnovel-home-actions a:hover,
+  .webnovel-home-actions a:focus-visible { transform: translateY(-0.12rem); }
+  .webnovel-book:hover .story-cover__image,
+  .webnovel-book:hover .story-artwork,
+  .webnovel-book:focus-within .story-cover__image,
+  .webnovel-book:focus-within .story-artwork,
+  .webnovel-result-book:hover .story-cover__image,
+  .webnovel-result-book:hover .story-artwork,
+  .webnovel-result-book:focus-within .story-cover__image,
+  .webnovel-result-book:focus-within .story-artwork { transform: scale(1.035); }
+  .webnovel-home-actions a:hover .webnovel-home-actions__arrow,
+  .webnovel-home-actions a:focus-visible .webnovel-home-actions__arrow { transform: translateX(0.18rem); }
+}
+@media (max-width: 68rem) {
+  .webnovel-spotlight__stage { --spotlight-side-one: 13rem; --spotlight-side-two: 21rem; --spotlight-scale-one: 0.8; --spotlight-scale-two: 0.65; }
+}
+@media (max-width: 52rem) {
+  .webnovel-spotlight__stage { --spotlight-side-one: 10rem; --spotlight-scale-one: 0.75; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header__genre-menu { animation: none; }
+  .webnovel-spotlight__card,
+  .webnovel-spotlight__card > span,
+  .webnovel-spotlight__card > strong,
+  .webnovel-book__cover,
+  .webnovel-book-rail__arrow,
+  .webnovel-result-book,
+  .webnovel-home-actions a,
+  .site-theme-toggle span,
+  .site-header__genre-picker > button svg,
+  .site-search button,
+  .site-login-pill,
+  .webnovel-tabs button::after,
+  .webnovel-home-actions__arrow { transition-duration: 0.01ms; }
+  /* The user explicitly requested a moving story carousel; keep other motion reduced. */
+  .webnovel-spotlight__card {
+    transition-duration: var(--dur-carousel) !important;
+  }
+  .webnovel-spotlight__card > span,
+  .webnovel-spotlight__card > strong { transition-duration: var(--dur-medium) !important; }
+  .webnovel-spotlight__arrow { transition-duration: var(--dur-short) !important; }
+}
+
+/* The shelf title below each cover identifies the story; keep artwork unobstructed. */
+.webnovel-book__cover .story-cover__title { display: none; }
+
+/* Story details: genre chips and aligned, scan-friendly metadata rows. */
+.story-detail__cover .story-cover__title { display: none; }
+.story-detail__genres { margin-bottom: var(--space-md); display: grid; gap: var(--space-xs); }
+.story-detail__genres-label { color: var(--color-muted); font-size: var(--text-xs); font-weight: 700; }
+.story-detail__genre-list { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.story-detail__genre-tag { padding: 0.3rem 0.65rem; color: var(--color-accent-dark); background: var(--color-accent-wash); border: 1px solid var(--color-rule); border-radius: 99px; font-size: var(--text-xs); font-weight: 600; }
+.story-detail__main h1 { max-width: 18ch; margin-bottom: var(--space-lg); }
+.story-detail__facts { margin: 0 0 var(--space-lg); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--color-rule); border-bottom: 1px solid var(--color-rule); }
+.story-detail__fact { min-width: 0; padding: var(--space-sm) var(--space-xs); display: grid; grid-template-columns: minmax(4.5rem, 0.7fr) minmax(0, 1.3fr); align-items: baseline; gap: var(--space-sm); border-bottom: 1px solid var(--color-rule); }
+.story-detail__fact:nth-last-child(-n + 2) { border-bottom: 0; }
+.story-detail__fact dt { color: var(--color-muted); font-size: var(--text-xs); }
+.story-detail__fact dd { min-width: 0; margin: 0; color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; overflow-wrap: anywhere; }
+@media (max-width: 36rem) {
+  .story-detail__facts { grid-template-columns: minmax(0, 1fr); }
+  .story-detail__fact:nth-last-child(2) { border-bottom: 1px solid var(--color-rule); }
+  .story-detail__fact:last-child { border-bottom: 0; }
+}

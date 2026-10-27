@@ -62,6 +62,8 @@
   --shadow-overlay: 0 0.75rem 2.5rem var(--color-shadow-overlay);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-short: 150ms;
+  --dur-medium: 220ms;
+  --dur-carousel: 460ms;
   --color-shadow-book: rgb(24 38 51 / 18%);
   --color-shadow-overlay: rgb(24 38 51 / 22%);
   --color-shadow-cover: rgb(20 35 50 / 16%);

@@ -78,7 +78,8 @@ function HeroCarousel({ stories }) {
 function BookRail({ stories }) {
   const railRef = useRef(null);
   function scroll(direction) {
-    railRef.current?.scrollBy({ left: direction * Math.max(240, railRef.current.clientWidth * 0.8), behavior: "smooth" });
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    railRef.current?.scrollBy({ left: direction * Math.max(240, railRef.current.clientWidth * 0.8), behavior: reduceMotion ? "auto" : "smooth" });
   }
 
   return <div className="webnovel-book-rail-wrap">
