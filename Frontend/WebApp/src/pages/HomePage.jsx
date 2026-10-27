@@ -6,6 +6,7 @@ import StoryArtwork from "../components/StoryArtwork.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StatePanel.jsx";
 import { loadCatalog } from "../services/catalogService.js";
 import { getReadingHistory } from "../services/readingHistory.js";
+import { useAuth } from "../context/AuthContext.jsx";
 import { displayStatus, formatDate } from "../utils/format.js";
 
 const pageSize = 24;
@@ -59,6 +60,7 @@ function HeroCarousel({ stories }) {
           <span className="webnovel-spotlight__genre">{story.genre || "Truyện mới"}</span>
           <strong>{story.title}</strong>
           <span className="webnovel-spotlight__author">Tác giả: {story.author || "Đang cập nhật"}</span>
+          <span className="webnovel-spotlight__cta">Xem truyện <span aria-hidden="true">→</span></span>
         </Link>;
       })}
       {slides.length > 1 && <>
@@ -107,13 +109,14 @@ function UpdateList({ stories }) {
     {stories.map(story => <li className="webnovel-update" key={story.id}>
       <Link to={`/story/${story.id}`} className="webnovel-update__title">{story.title}</Link>
       <span>{story.author}</span>
-      <span>Chương {story.chapterCount ?? 0} · {story.genre || "Truyện"}</span>
+      <span>{story.storyChapterCount ?? 0} chương · {story.episodeCount ?? story.chapterCount ?? 0} tập · {story.genre || "Truyện"}</span>
       <time>{formatDate(story.updatedAt)}</time>
     </li>)}
   </ul>;
 }
 
 export default function HomePage() {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const search = (searchParams.get("search") || "").trim();
   const genreId = searchParams.get("genreId") || "";
@@ -186,15 +189,31 @@ export default function HomePage() {
         </label>
       </div>
       {loading ? <LoadingState label="Đang tải danh sách truyện…" /> : error ? <ErrorState message={error} onRetry={() => setReloadKey(value => value + 1)} /> : data.stories.length ? <>
-        <div className="webnovel-story-grid">{data.stories.map(story => <article className="webnovel-result-book" key={story.id}><Link to={`/story/${story.id}`}><StoryCover story={story} size="small" /></Link><div><Link className="webnovel-book__title" to={`/story/${story.id}`}>{story.title}</Link><span>{story.author}</span><span>{story.genre} · {story.chapterCount ?? 0} chương</span></div></article>)}</div>
+        <div className="webnovel-story-grid">{data.stories.map(story => <article className="webnovel-result-book" key={story.id}><Link to={`/story/${story.id}`}><StoryCover story={story} size="small" /></Link><div><Link className="webnovel-book__title" to={`/story/${story.id}`}>{story.title}</Link><span>{story.author}</span><span>{story.genre} · {story.storyChapterCount ?? 0} chương · {story.episodeCount ?? story.chapterCount ?? 0} tập</span></div></article>)}</div>
         {data.pagination.totalPages > 1 && <nav className="catalog-pagination" aria-label="Phân trang truyện"><button className="button button--outline" type="button" onClick={() => changePage(page - 1)} disabled={page <= 1}>← Trang trước</button><span>Trang {page} / {data.pagination.totalPages}</span><button className="button button--outline" type="button" onClick={() => changePage(page + 1)} disabled={page >= data.pagination.totalPages}>Trang sau →</button></nav>}
       </> : <EmptyState title="Không tìm thấy truyện" detail="Thử tên truyện, tác giả hoặc thể loại khác." />}
     </section> : loading ? <LoadingState label="Đang tải thư viện truyện…" /> : error ? <ErrorState message={error} onRetry={() => setReloadKey(value => value + 1)} /> : !data.stories.length ? <EmptyState title="Thư viện chưa có truyện" detail="Truyện sẽ xuất hiện tại đây sau khi được thêm vào." /> : <>
       <HeroCarousel stories={spotlightStories} />
 
       <nav className="webnovel-home-actions" aria-label="Lối tắt">
-        <Link to="/history"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></svg>Lịch sử đọc</Link>
-        <Link to="/account"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.8-4 3.3-6 7.5-6s6.7 2 7.5 6" /></svg>Đăng nhập</Link>
+        {history[0] ? <Link className="webnovel-home-actions__continue" to={`/read/${history[0].storyId}/${history[0].chapterNumber}`}>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></svg>
+          <span className="webnovel-home-actions__copy"><small>ĐỌC TIẾP</small><strong>{history[0].storyTitle}</strong><span>Chương {history[0].storyChapterNumber || history[0].chapterNumber} · Tập {history[0].episodeNumber || 1}</span></span>
+          <span className="webnovel-home-actions__arrow" aria-hidden="true">→</span>
+        </Link> : <Link to="/history">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></svg>
+          <span className="webnovel-home-actions__copy"><small>THƯ VIỆN CỦA BẠN</small><strong>Lịch sử đọc</strong><span>Mở lại truyện đã xem</span></span>
+          <span className="webnovel-home-actions__arrow" aria-hidden="true">→</span>
+        </Link>}
+        {user ? <Link to="/profile">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.8-4 3.3-6 7.5-6s6.7 2 7.5 6" /></svg>
+          <span className="webnovel-home-actions__copy"><small>TÀI KHOẢN</small><strong>{user.displayName || user.username}</strong><span>Hồ sơ độc giả</span></span>
+          <span className="webnovel-home-actions__arrow" aria-hidden="true">→</span>
+        </Link> : <Link to="/account">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.8-4 3.3-6 7.5-6s6.7 2 7.5 6" /></svg>
+          <span className="webnovel-home-actions__copy"><small>THÀNH VIÊN</small><strong>Đăng nhập</strong><span>Vào tài khoản độc giả</span></span>
+          <span className="webnovel-home-actions__arrow" aria-hidden="true">→</span>
+        </Link>}
       </nav>
 
       <section className="webnovel-ranking" aria-labelledby="ranking-title">
@@ -214,7 +233,7 @@ export default function HomePage() {
         <main className="webnovel-home-main">
           <section className="webnovel-section" aria-labelledby="new-stories-title">
             <SectionHeading id="new-stories-title" title="Truyện mới ra mắt" link="/?sort=newest" />
-            <div className="webnovel-story-grid">{newestStories.slice(0, 6).map(story => <article className="webnovel-result-book" key={story.id}><Link to={`/story/${story.id}`}><StoryCover story={story} size="small" /></Link><div><Link className="webnovel-book__title" to={`/story/${story.id}`}>{story.title}</Link><span>{story.author}</span><span>{story.genre} · {story.chapterCount ?? 0} chương</span></div></article>)}</div>
+            <div className="webnovel-story-grid">{newestStories.slice(0, 6).map(story => <article className="webnovel-result-book" key={story.id}><Link to={`/story/${story.id}`}><StoryCover story={story} size="small" /></Link><div><Link className="webnovel-book__title" to={`/story/${story.id}`}>{story.title}</Link><span>{story.author}</span><span>{story.genre} · {story.storyChapterCount ?? 0} chương · {story.episodeCount ?? story.chapterCount ?? 0} tập</span></div></article>)}</div>
           </section>
           <section className="webnovel-section" aria-labelledby="updates-title">
             <SectionHeading id="updates-title" title="Mới lên chương" link="/?sort=updated" />
@@ -222,12 +241,12 @@ export default function HomePage() {
           </section>
           {completedStories.length > 0 && <section className="webnovel-section" aria-labelledby="completed-title">
             <SectionHeading id="completed-title" title="Truyện đã hoàn thành" link="/?status=Completed" />
-            <div className="webnovel-story-grid">{completedStories.slice(0, 6).map(story => <article className="webnovel-result-book" key={story.id}><Link to={`/story/${story.id}`}><StoryCover story={story} size="small" /></Link><div><Link className="webnovel-book__title" to={`/story/${story.id}`}>{story.title}</Link><span>{story.author}</span><span>{story.genre} · {story.chapterCount ?? 0} chương</span></div></article>)}</div>
+            <div className="webnovel-story-grid">{completedStories.slice(0, 6).map(story => <article className="webnovel-result-book" key={story.id}><Link to={`/story/${story.id}`}><StoryCover story={story} size="small" /></Link><div><Link className="webnovel-book__title" to={`/story/${story.id}`}>{story.title}</Link><span>{story.author}</span><span>{story.genre} · {story.storyChapterCount ?? 0} chương · {story.episodeCount ?? story.chapterCount ?? 0} tập</span></div></article>)}</div>
           </section>}
         </main>
         <aside className="webnovel-home-aside">
           <section className="webnovel-widget" id="genre-list"><SectionHeading title="Thể loại" /><ul className="webnovel-genre-list">{data.genres.map(genre => <li key={genre.id}><Link to={`/?genreId=${genre.id}`}>{genre.name}</Link><span>{genre.storyCount ?? 0}</span></li>)}</ul></section>
-          {history.length > 0 && <section className="webnovel-widget"><SectionHeading title="Đọc gần đây" link="/history" /><Link className="webnovel-history-link" to={`/read/${history[0].storyId}/${history[0].chapterNumber}`}>{history[0].storyTitle}<span>Đọc tiếp chương {history[0].chapterNumber} →</span></Link></section>}
+          {history.length > 0 && <section className="webnovel-widget"><SectionHeading title="Đọc gần đây" link="/history" /><Link className="webnovel-history-link" to={`/read/${history[0].storyId}/${history[0].chapterNumber}`}>{history[0].storyTitle}<span>Đọc tiếp chương {history[0].storyChapterNumber || history[0].chapterNumber} · tập {history[0].episodeNumber || 1} →</span></Link></section>}
         </aside>
       </div>
     </>}

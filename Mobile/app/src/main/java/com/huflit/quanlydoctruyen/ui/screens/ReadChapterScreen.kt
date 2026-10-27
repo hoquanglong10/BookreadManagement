@@ -43,7 +43,7 @@ import com.huflit.quanlydoctruyen.ui.components.LoadingBox
 // PB14: đọc chương, chuyển chương, chỉnh cỡ chữ, chế độ tối
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: () -> Unit) {
+fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: () -> Unit, onPlans: () -> Unit) {
     var retry by remember { mutableIntStateOf(0) }
     val state by produceState<UiState<ChapterContent>>(UiState.Loading, storyId, number, retry) {
         value = UiState.Loading
@@ -69,15 +69,18 @@ fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: 
         Surface(Modifier.padding(padding).fillMaxSize(), color = background, contentColor = textColor) {
             when (val s = state) {
                 is UiState.Loading -> LoadingBox()
-                is UiState.Error -> ErrorBox(
-                    if (s.code == 403) "${s.message}\n(Chương trả phí sẽ mở ở Sprint 2)" else s.message,
-                    onRetry = if (s.code == 403) null else ({ retry++ })
-                )
+                is UiState.Error -> Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ErrorBox(
+                        if (s.code == 403) "${s.message}\nĐăng nhập rồi đăng ký gói phù hợp hoặc mua truyện để mở tập này." else s.message,
+                        onRetry = if (s.code == 403) null else ({ retry++ })
+                    )
+                    if (s.code == 403) Button(onClick = onPlans, modifier = Modifier.fillMaxWidth()) { Text("Đăng ký / Gia hạn gói đọc") }
+                }
                 is UiState.Success -> {
                     val c = s.data
                     Column(Modifier.verticalScroll(rememberScrollState(), true).padding(16.dp)) {
                         Text(
-                            "Chương ${c.number}: ${c.title}",
+                            "Chương ${c.storyChapterNumber.takeIf { it > 0 } ?: c.number}${c.storyChapterTitle.takeIf { it.isNotBlank() }?.let { ": $it" }.orEmpty()} · Tập ${c.episodeNumber}: ${c.title}",
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
                             textAlign = TextAlign.Center,
@@ -123,11 +126,11 @@ private fun ChapterNav(c: ChapterContent, onGoTo: (Int) -> Unit) {
             onClick = { c.prevNumber?.let(onGoTo) },
             enabled = c.prevNumber != null,
             modifier = Modifier.weight(1f)
-        ) { Text("‹ Chương trước") }
+        ) { Text("‹ Tập trước") }
         Button(
             onClick = { c.nextNumber?.let(onGoTo) },
             enabled = c.nextNumber != null,
             modifier = Modifier.weight(1f)
-        ) { Text("Chương sau ›") }
+        ) { Text("Tập sau ›") }
     }
 }

@@ -19,7 +19,7 @@ Các FR01–FR18 giữ nguyên mã trong phần Project Information của Produc
 - Hệ thống phải từ chối username/email đã sử dụng, lưu password dưới dạng hash và cấp JWT khi đăng nhập thành công.
 - Đăng nhập phải nhận username hoặc email cùng password; tài khoản bị khóa không được xác thực.
 - Endpoint tài khoản hiện tại phải trả thông tin tài khoản từ JWT hợp lệ. Web và Android phải xóa phiên phía client khi đăng xuất hoặc khi token hết hạn.
-- **Trạng thái:** Đã có luồng cơ bản trên API, Web và Android. Đổi mật khẩu, cập nhật hồ sơ và ảnh đại diện chưa có.
+- **Trạng thái:** Đã có trên API, Web và Android; hồ sơ hỗ trợ cập nhật tên hiển thị/avatar URL và đổi mật khẩu.
 
 ### FR20 — Vai trò và phân quyền
 
@@ -34,14 +34,14 @@ Các FR01–FR18 giữ nguyên mã trong phần Project Information của Produc
 
 - Admin phải tạo, cập nhật và xóa truyện.
 - Thông tin tối thiểu gồm tên, tác giả, giới thiệu, trạng thái phát hành, thể loại và cách trình bày bìa.
-- Mục tiêu backlog yêu cầu một truyện có thể có nhiều thể loại và tải ảnh bìa.
-- **Trạng thái:** Một phần. CRUD truyện, metadata, status và cover theme đã có; hiện lưu một tên thể loại trên Story, chưa có upload ảnh bìa hoặc quan hệ nhiều-nhiều.
+- Một truyện có thể có nhiều thể loại; Admin có thể tải ảnh bìa JPG, PNG hoặc WebP.
+- **Trạng thái:** Đã có CRUD, nhiều thể loại và tải/hiển thị ảnh bìa trên Web/API.
 
 ### FR02 — Quản lý chương
 
-- Admin phải tạo, sửa và xóa chương thuộc một truyện; mỗi chương có số thứ tự duy nhất trong truyện, tên, nội dung, cờ miễn phí và thời điểm phát hành.
-- Chương chưa đến thời điểm phát hành không được đọc bởi khách/thành viên.
-- **Trạng thái:** Một phần đến đã có. CRUD nội dung, số thứ tự duy nhất, cờ IsFree và thời điểm phát hành đã có. Endpoint đọc chương chặn chương chưa phát hành; endpoint mục lục hiện vẫn trả metadata chương chưa phát hành kèm cờ trạng thái.
+- Mỗi Chương thuộc một truyện và có số thứ tự/tên; một Chương chứa một hoặc nhiều Tập. Mỗi Tập có số thứ tự trong Chương, tiêu đề, nội dung, cờ miễn phí và thời điểm phát hành. Tập tiếp tục có số đọc nội bộ duy nhất để giữ tương thích URL/API cũ.
+- Admin có thể tạo tập trong chương hiện có hoặc tạo chương mới, sửa và xóa tập. Tập chưa phát hành không được đọc bởi khách/thành viên.
+- **Trạng thái:** Đã có trên Backend, Web và Android. CSDL chuyển các bản ghi chương cũ thành Chương có một Tập đầu tiên; các mục lục trả thông tin Chương → nhiều Tập.
 
 ### FR21 — Quản lý thể loại
 
@@ -55,57 +55,56 @@ Các FR01–FR18 giữ nguyên mã trong phần Project Information của Produc
 
 - Người dùng phải tìm truyện theo tên hoặc tác giả, lọc theo thể loại/trạng thái và phân trang kết quả.
 - Hệ thống phải hỗ trợ danh sách theo mới cập nhật, mới phát hành và lượt đọc cao.
-- **Trạng thái:** Một phần đến đã có. API hỗ trợ tìm kiếm tên/tác giả, lọc thể loại/trạng thái, sắp xếp updated/newest/views và phân trang. Ba khu vực danh sách riêng như backlog yêu cầu chưa được xác nhận có đầy đủ trên giao diện.
+- **Trạng thái:** Đã có trên API, Web và Android. API hỗ trợ tìm kiếm tên/tác giả, lọc thể loại/trạng thái, sắp xếp updated/newest/views và phân trang; trang khám phá có danh sách theo các tiêu chí này.
 
 ### FR05 — Xem thông tin và đọc chương
 
-- Người dùng phải xem chi tiết truyện và danh sách chương theo thứ tự.
-- Người dùng chỉ được đọc chương đã phát hành, có nội dung và họ có quyền truy cập theo FR09.
-- Trình đọc phải có điều hướng chương trước/sau, cỡ chữ và chế độ sáng/tối.
-- **Trạng thái:** Một phần. Trang chi tiết, mục lục, nội dung, điều hướng và cài đặt đọc đã có. Backend hiện chưa thực thi quyền trả phí theo FR09; cờ IsFree chưa được dùng để chặn đọc. Mục lục công khai hiện có thể lộ metadata của chương chưa phát hành.
+- Người dùng phải xem mục lục theo Chương → Tập và chỉ đọc Tập đã phát hành, có nội dung, được phép theo FR09.
+- Trình đọc có điều hướng Tập trước/sau, cỡ chữ và chế độ sáng/tối.
+- **Trạng thái:** Đã có trên Web, Android và Backend; URL đọc cũ theo số nội bộ vẫn hoạt động.
 
 ### FR18 — Ghi nhận hoạt động nội dung
 
 - Hệ thống phải ghi nhận lượt đọc ở cấp truyện/chương và hỗ trợ thống kê nội dung theo khoảng thời gian, lượt theo dõi, mua và mức quan tâm thể loại.
-- **Trạng thái:** Một phần. Mỗi lần đọc chương hiện tăng ViewCount; API có thể sắp xếp theo tổng lượt xem. Chưa có lịch sử sự kiện đọc theo thời gian, theo dõi, mua hoặc dashboard thống kê.
+- **Trạng thái:** Một phần. Mỗi lần đọc Tập tăng ViewCount và ghi ReadEvent; Admin xem lượt đọc theo thời gian/Tập. Theo dõi và thống kê các hành vi khác chưa có.
 
 ## 4. Chính sách trả phí và giao dịch
 
 ### FR03 — Thiết lập chính sách truy cập
 
-- Admin phải thiết lập nội dung miễn phí, trả phí hoặc kết hợp; xác định chương miễn phí và giá mua truyện.
-- **Trạng thái:** Một phần. Admin có thể đặt cờ IsFree trên chương. Chưa có loại truyện, giá, cấu hình số chương miễn phí hay cơ chế thực thi quyền.
+- Admin phải thiết lập nội dung miễn phí, trả phí hoặc kết hợp; xác định số Chương đầu miễn phí và giá mua truyện. Một Chương có thể gồm nhiều Tập; khi chọn N Chương đầu miễn phí thì mọi Tập thuộc các Chương đó được mở, ngoài ra Admin có thể đánh dấu miễn phí từng Tập.
+- **Trạng thái:** Đã có loại truyện Free/Paid/Mixed, giá truyện và chính sách miễn phí theo Chương/Tập; Backend kiểm tra quyền trước khi trả nội dung.
 
 ### FR06 — Quản lý gói đọc
 
 - Admin phải tạo, sửa, định giá, thiết lập thời hạn/phạm vi và ngừng cung cấp gói.
 - Ngừng bán gói không được làm mất quyền của thuê bao còn hiệu lực.
-- **Trạng thái:** Chưa triển khai.
+- **Trạng thái:** Đã có API Admin và trang quản lý Web; người đọc xem/mua gói đang mở bán trên Web và Android.
 
 ### FR07 — Đăng ký và gia hạn gói
 
 - Thành viên phải có thể đăng ký hoặc gia hạn gói theo tháng bằng cổng thanh toán giả lập.
 - Chỉ giao dịch thành công mới kích hoạt hoặc gia hạn quyền. Gia hạn khi gói còn hiệu lực phải cộng thời gian tiếp nối.
-- **Trạng thái:** Chưa triển khai.
+- **Trạng thái:** Đã có thanh toán mô phỏng. Gia hạn gói còn hạn nối kỳ mới từ thời điểm hết hạn; thất bại không tạo quyền.
 
 ### FR08 — Mua quyền đọc truyện
 
 - Thành viên phải mua riêng truyện trả phí bằng cổng thanh toán giả lập.
 - Quyền mua riêng không hết hạn khi gói đọc hết hạn.
-- **Trạng thái:** Chưa triển khai.
+- **Trạng thái:** Đã có mua truyện trả phí mô phỏng trên Web và Android; quyền mua không phụ thuộc hạn thuê bao.
 
 ### FR09 — Kiểm tra quyền đọc
 
 - Backend phải cho đọc chương khi chương miễn phí, thành viên có gói còn hiệu lực bao gồm nội dung đó, hoặc thành viên đã mua truyện.
 - Hệ thống không được yêu cầu thanh toán lần nữa nếu đã có quyền hợp lệ.
 - Kiểm tra quyền phải diễn ra tại Backend trước khi trả nội dung chương.
-- **Trạng thái:** Chưa triển khai. Hiện API trả nội dung chương đã phát hành cho khách mà không xét IsFree.
+- **Trạng thái:** Đã có. Backend kiểm tra Tập miễn phí, gói còn hạn đúng phạm vi hoặc quyền mua trước khi trả nội dung.
 
 ### FR10 — Giao dịch và lịch sử thanh toán
 
 - Hệ thống phải ghi giao dịch thành công/thất bại, hiển thị lịch sử cho thành viên và hỗ trợ Admin đối soát trường hợp thanh toán thành công nhưng quyền chưa được cấp.
 - Giá sản phẩm phải được lưu tại thời điểm giao dịch. Giao dịch thất bại không cấp quyền.
-- **Trạng thái:** Chưa triển khai.
+- **Trạng thái:** Đã có bảng giao dịch, mã idempotency, trạng thái thành công/thất bại, lịch sử riêng của thành viên và trang Admin đối soát/cấp quyền bù có ghi chú, thời điểm và Admin thực hiện. Thanh toán hiện chỉ mô phỏng, chưa kết nối cổng tiền thật.
 
 ## 5. Cá nhân hóa và cộng đồng
 

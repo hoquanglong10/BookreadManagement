@@ -88,10 +88,15 @@ if (app.Environment.IsDevelopment())
         });
         await context.SaveChangesAsync();
     }
+    await SampleLibrarySeeder.SeedAsync(context);
+    await MissingSampleEpisodeSeeder.SeedAsync(context);
+    await StoryExpansionSeeder.SeedAsync(context);
 }
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
+Directory.CreateDirectory(Path.Combine(app.Environment.ContentRootPath, "wwwroot"));
+app.UseStaticFiles();
 var reactBuildDirectory = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "Frontend", "WebApp", "dist"));
 var reactIndexPath = Path.Combine(reactBuildDirectory, "index.html");
 var hasReactBuild = Directory.Exists(reactBuildDirectory) && File.Exists(reactIndexPath);

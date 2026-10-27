@@ -55,6 +55,11 @@ object SessionManager {
         user = res.user
     }
 
+    fun updateUser(value: UserDto) {
+        prefs.edit().putString(KEY_USER, gson.toJson(value)).apply()
+        user = value
+    }
+
     fun logout() {
         prefs.edit().remove(KEY_TOKEN).remove(KEY_USER).remove(KEY_EXPIRES).apply()
         token = null

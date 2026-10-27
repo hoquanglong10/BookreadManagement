@@ -1,5 +1,10 @@
 **/bin/
 **/obj/
+**/build/
+**/.gradle/
+/.gradle-user/
+/.android-user/
+Mobile/.kotlin/
 **/node_modules/
 **/dist/
 **/.vs/
@@ -14,3 +19,4 @@
 *.p12
 .env
 .env.*
+Backend/wwwroot/uploads/

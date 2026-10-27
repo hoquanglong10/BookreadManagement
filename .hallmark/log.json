@@ -1,5 +1,13 @@
 [
   {
+    "date": "2026-10-27",
+    "scope": "app",
+    "macrostructure": "Featured Carousel / Reader Actions / Book Shelf / Library Updates",
+    "theme": "WebNovel Catalog · layered white surfaces",
+    "enrichment": "Database-backed covers with a visible continue-reading action",
+    "brief": "Raised the catalog from wireframe-like flat panels with a soft canvas, distinct white sections, stronger cover treatment, and responsive reader shortcuts."
+  },
+  {
     "date": "2026-10-20",
     "scope": "app",
     "macrostructure": "Featured Carousel / Reader Actions / Horizontal Book Rail / Updates",

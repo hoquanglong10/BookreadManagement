@@ -11,6 +11,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.PUT
 import retrofit2.http.Query
 import java.io.IOException
 
@@ -27,6 +28,12 @@ interface ApiService {
 
     @GET("api/auth/me")
     suspend fun me(): UserDto
+
+    @PUT("api/auth/profile")
+    suspend fun updateProfile(@Body body: UpdateProfileRequest): UserDto
+
+    @PUT("api/auth/password")
+    suspend fun changePassword(@Body body: ChangePasswordRequest)
 
     // PB05
     @GET("api/genres")
@@ -45,6 +52,18 @@ interface ApiService {
     // PB13
     @GET("api/stories/{id}")
     suspend fun storyDetail(@Path("id") id: Int): StoryDetail
+
+    @GET("api/plans/available")
+    suspend fun availablePlans(): List<SubscriptionPlanDto>
+
+    @POST("api/payments/plans/{planId}")
+    suspend fun subscribe(@Path("planId") planId: Int, @Body body: PaymentRequest): PaymentResultDto
+
+    @POST("api/payments/stories/{storyId}")
+    suspend fun buyStory(@Path("storyId") storyId: Int, @Body body: PaymentRequest): PaymentResultDto
+
+    @GET("api/payments/mine")
+    suspend fun paymentHistory(): List<PaymentHistoryDto>
 
     // PB14
     @GET("api/stories/{storyId}/chapters/{number}")

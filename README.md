@@ -60,5 +60,7 @@ Mở thư mục `Mobile` bằng Android Studio, cài Android SDK 37 nếu IDE y�
 
 - Tìm kiếm truyện theo tên/tác giả, lọc theo thể loại/trạng thái, sắp xếp và phân trang.
 - Xem thông tin truyện, danh sách chương và đọc nội dung chương; có cỡ chữ, chế độ tối, chương trước/sau.
-- Admin quản lý truyện, chương, thể loại và tài khoản. Nội dung chương, trạng thái miễn phí và lịch phát hành lưu trong database.
-- Android: đăng nhập, khám phá/tìm truyện, xem chi tiết và đọc chương.
+- Admin quản lý truyện, nhiều thể loại, ảnh bìa, chương/lịch phát hành, tài khoản và gói đọc.
+- Quyền đọc hỗ trợ truyện miễn phí, trả phí, kết hợp; API ghi sự kiện đọc và Admin xem báo cáo theo ngày.
+- Hồ sơ độc giả hỗ trợ tên hiển thị, avatar URL và đổi mật khẩu.
+- Android: đăng ký/đăng nhập, khám phá/tìm truyện, các danh sách đề xuất, chi tiết/quyền chương, đọc chương và hồ sơ.

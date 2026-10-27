@@ -38,3 +38,5 @@ nhận thư mục mới. Nếu chưa build, chạy giao diện bằng Vite ở c
 - `src/layouts`: bố cục admin.
 - `src/pages`: khám phá, chi tiết, đọc, tài khoản và các trang quản trị.
 - `src/utils`: định dạng dữ liệu.
+
+Trang hồ sơ hỗ trợ cập nhật tên hiển thị, avatar URL và mật khẩu. Admin có các trang quản lý truyện/chương, thể loại, gói đọc và thống kê lượt đọc. Quyền chương được API quyết định; giao diện chỉ mở chương khi API xác nhận quyền đọc.

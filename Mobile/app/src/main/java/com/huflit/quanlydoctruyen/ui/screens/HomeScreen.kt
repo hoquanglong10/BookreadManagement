@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -46,6 +47,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.huflit.quanlydoctruyen.data.ApiClient
+import com.huflit.quanlydoctruyen.data.Genre
+import com.huflit.quanlydoctruyen.data.PagedResult
 import com.huflit.quanlydoctruyen.data.SessionManager
 import com.huflit.quanlydoctruyen.data.StoryListItem
 import com.huflit.quanlydoctruyen.data.toMessage
@@ -53,19 +56,33 @@ import com.huflit.quanlydoctruyen.ui.components.CoverPlaceholder
 import com.huflit.quanlydoctruyen.ui.components.ErrorBox
 import com.huflit.quanlydoctruyen.ui.components.StatusBadge
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlin.coroutines.cancellation.CancellationException
 
 private val SORTS = listOf("updated" to "Mới cập nhật", "newest" to "Mới phát hành", "views" to "Đọc nhiều")
 
+private data class HomeCatalogResults(
+    val primary: PagedResult<StoryListItem>,
+    val updated: PagedResult<StoryListItem>? = null,
+    val newest: PagedResult<StoryListItem>? = null,
+    val popular: PagedResult<StoryListItem>? = null
+)
+
 // PB11: tìm kiếm truyện, PB12: các danh sách gợi ý
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit) {
+fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () -> Unit) {
     var input by rememberSaveable { mutableStateOf("") }
     var keyword by rememberSaveable { mutableStateOf("") }
     var sort by rememberSaveable { mutableStateOf("updated") }
+    var selectedGenreId by rememberSaveable { mutableStateOf<Int?>(null) }
 
     val stories = remember { mutableStateListOf<StoryListItem>() }
+    val updatedStories = remember { mutableStateListOf<StoryListItem>() }
+    val newestStories = remember { mutableStateListOf<StoryListItem>() }
+    val popularStories = remember { mutableStateListOf<StoryListItem>() }
+    val genres = remember { mutableStateListOf<Genre>() }
     var page by remember { mutableIntStateOf(1) }
     var totalPages by remember { mutableIntStateOf(1) }
     var loading by remember { mutableStateOf(true) }
@@ -74,15 +91,30 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit) {
     val scope = rememberCoroutineScope()
 
     // Tải trang đầu mỗi khi đổi từ khóa / cách sắp xếp
-    LaunchedEffect(keyword, sort, reloadKey) {
+    LaunchedEffect(Unit) {
+        try { genres.addAll(ApiClient.api.genres()) } catch (_: Exception) { }
+    }
+
+    LaunchedEffect(keyword, selectedGenreId, sort, reloadKey) {
         loading = true
         error = null
         try {
-            val res = ApiClient.api.searchStories(keyword = keyword.ifBlank { null }, sort = sort, page = 1)
+            val results = coroutineScope {
+                val current = async { ApiClient.api.searchStories(keyword = keyword.ifBlank { null }, genreId = selectedGenreId, sort = sort, page = 1) }
+                if (keyword.isBlank() && selectedGenreId == null) {
+                    val updateRequest = async { ApiClient.api.searchStories(sort = "updated", pageSize = 6) }
+                    val newestRequest = async { ApiClient.api.searchStories(sort = "newest", pageSize = 6) }
+                    val popularRequest = async { ApiClient.api.searchStories(sort = "views", pageSize = 6) }
+                    HomeCatalogResults(current.await(), updateRequest.await(), newestRequest.await(), popularRequest.await())
+                } else HomeCatalogResults(current.await())
+            }
             stories.clear()
-            stories.addAll(res.items)
-            page = res.page
-            totalPages = res.totalPages
+            stories.addAll(results.primary.items)
+            updatedStories.clear(); results.updated?.let { updatedStories.addAll(it.items) }
+            newestStories.clear(); results.newest?.let { newestStories.addAll(it.items) }
+            popularStories.clear(); results.popular?.let { popularStories.addAll(it.items) }
+            page = results.primary.page
+            totalPages = results.primary.totalPages
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -96,7 +128,7 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit) {
         scope.launch {
             loading = true
             try {
-                val res = ApiClient.api.searchStories(keyword = keyword.ifBlank { null }, sort = sort, page = page + 1)
+                val res = ApiClient.api.searchStories(keyword = keyword.ifBlank { null }, genreId = selectedGenreId, sort = sort, page = page + 1)
                 stories.addAll(res.items)
                 page = res.page
                 totalPages = res.totalPages
@@ -118,7 +150,8 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit) {
                 title = { Text("Đọc Truyện", fontWeight = FontWeight.Bold) },
                 actions = {
                     if (user != null) {
-                        Text(user.displayName, style = MaterialTheme.typography.bodyMedium)
+                        TextButton(onClick = onProfile) { Text(user.displayName.ifBlank { user.username }) }
+                        TextButton(onClick = onProfile) { Text("Hồ sơ") }
                         TextButton(onClick = { SessionManager.logout() }) { Text("Đăng xuất") }
                     } else {
                         TextButton(onClick = onLogin) { Text("Đăng nhập") }
@@ -148,6 +181,16 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit) {
                 }
             }
 
+            Row(
+                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(selected = selectedGenreId == null, onClick = { selectedGenreId = null }, label = { Text("Tất cả thể loại") })
+                genres.forEach { genre ->
+                    FilterChip(selected = selectedGenreId == genre.id, onClick = { selectedGenreId = if (selectedGenreId == genre.id) null else genre.id }, label = { Text(genre.name) })
+                }
+            }
+
             if (keyword.isNotBlank()) {
                 Text(
                     "Kết quả cho \"$keyword\"",
@@ -168,6 +211,11 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit) {
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    if (keyword.isBlank() && selectedGenreId == null) {
+                        item { StoryShelf("Mới cập nhật", updatedStories, onOpenStory) }
+                        item { StoryShelf("Mới phát hành", newestStories, onOpenStory) }
+                        item { StoryShelf("Đọc nhiều", popularStories, onOpenStory) }
+                    }
                     items(stories, key = { it.id }) { story ->
                         StoryRow(story, onClick = { onOpenStory(story.id) })
                     }
@@ -176,6 +224,25 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit) {
                             if (loading) CircularProgressIndicator(Modifier.padding(8.dp))
                             else if (page < totalPages) OutlinedButton(onClick = { loadMore() }) { Text("Xem thêm") }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StoryShelf(title: String, stories: List<StoryListItem>, onOpenStory: (Int) -> Unit) {
+    if (stories.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(stories, key = { "${title}-${it.id}" }) { story ->
+                Card(Modifier.width(116.dp).clickable { onOpenStory(story.id) }) {
+                    Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        CoverPlaceholder(story.title, Modifier.fillMaxWidth().height(128.dp))
+                        Text(story.title, maxLines = 2, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
+                        Text("${story.storyChapterCount} chương · ${story.episodeCount.takeIf { it > 0 } ?: story.chapterCount} tập", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -202,7 +269,7 @@ private fun StoryRow(story: StoryListItem, onClick: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     StatusBadge(story.status)
                     Spacer(Modifier.width(8.dp))
-                    Text("${story.chapterCount} chương · ${story.viewCount} lượt đọc", style = MaterialTheme.typography.bodySmall)
+                    Text("${story.storyChapterCount} chương · ${story.episodeCount.takeIf { it > 0 } ?: story.chapterCount} tập · ${story.viewCount} lượt đọc", style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

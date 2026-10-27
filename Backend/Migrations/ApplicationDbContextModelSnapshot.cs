@@ -34,10 +34,13 @@ namespace CustomerManagement.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("EpisodeNumber")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsFree")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasDefaultValue(false);
 
                     b.Property<int>("Number")
                         .HasColumnType("int");
@@ -46,6 +49,9 @@ namespace CustomerManagement.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int>("StoryChapterId")
+                        .HasColumnType("int");
 
                     b.Property<int>("StoryId")
                         .HasColumnType("int");
@@ -59,6 +65,9 @@ namespace CustomerManagement.API.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("StoryChapterId", "EpisodeNumber")
+                        .IsUnique();
 
                     b.HasIndex("StoryId", "Number")
                         .IsUnique();
@@ -119,6 +128,118 @@ namespace CustomerManagement.API.Migrations
                     b.ToTable("Genres");
                 });
 
+            modelBuilder.Entity("CustomerManagement.API.Models.PaymentTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("EntitlementGranted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("IdempotencyKey")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("PlanId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ReconciledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ReconciledByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReconciliationNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("StoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("ReconciledByUserId");
+
+                    b.HasIndex("Reference")
+                        .IsUnique();
+
+                    b.HasIndex("StoryId");
+
+                    b.HasIndex("Status", "CreatedAt");
+
+                    b.HasIndex("UserId", "IdempotencyKey")
+                        .IsUnique();
+
+                    b.ToTable("PaymentTransactions");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.ReadEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ViewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChapterId");
+
+                    b.HasIndex("UserId", "ViewedAt");
+
+                    b.HasIndex("StoryId", "ChapterId", "ViewedAt");
+
+                    b.ToTable("ReadEvents");
+                });
+
             modelBuilder.Entity("CustomerManagement.API.Models.Story", b =>
                 {
                     b.Property<int>("Id")
@@ -126,6 +247,13 @@ namespace CustomerManagement.API.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccessType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Free");
 
                     b.Property<string>("Author")
                         .IsRequired()
@@ -137,15 +265,30 @@ namespace CustomerManagement.API.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<string>("CoverUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(3000)
                         .HasColumnType("nvarchar(3000)");
 
+                    b.Property<int>("FreeChapterCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("Genre")
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
+
+                    b.Property<decimal>("Price")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTime>("PublishedAt")
                         .HasColumnType("datetime2");
@@ -172,6 +315,145 @@ namespace CustomerManagement.API.Migrations
                     b.ToTable("Stories");
                 });
 
+            modelBuilder.Entity("CustomerManagement.API.Models.StoryChapter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Number")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoryId", "Number")
+                        .IsUnique();
+
+                    b.ToTable("StoryChapters");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.StoryGenre", b =>
+                {
+                    b.Property<int>("StoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GenreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("StoryId", "GenreId");
+
+                    b.HasIndex("GenreId");
+
+                    b.ToTable("StoryGenres");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.StoryPurchase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("PriceAtPurchase")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("PurchasedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoryId");
+
+                    b.HasIndex("UserId", "StoryId")
+                        .IsUnique();
+
+                    b.ToTable("StoryPurchases");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.SubscriptionPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccessScope")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SubscriptionPlans");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.SubscriptionPlanGenre", b =>
+                {
+                    b.Property<int>("PlanId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GenreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlanId", "GenreId");
+
+                    b.HasIndex("GenreId");
+
+                    b.ToTable("SubscriptionPlanGenres");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.SubscriptionPlanStory", b =>
+                {
+                    b.Property<int>("PlanId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoryId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlanId", "StoryId");
+
+                    b.HasIndex("StoryId");
+
+                    b.ToTable("SubscriptionPlanStories");
+                });
+
             modelBuilder.Entity("CustomerManagement.API.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -180,8 +462,19 @@ namespace CustomerManagement.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AvatarUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .HasDefaultValue("");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -214,8 +507,48 @@ namespace CustomerManagement.API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("CustomerManagement.API.Models.UserSubscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PlanId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("UserId", "Status", "EndsAt");
+
+                    b.ToTable("UserSubscriptions");
+                });
+
             modelBuilder.Entity("CustomerManagement.API.Models.Chapter", b =>
                 {
+                    b.HasOne("CustomerManagement.API.Models.StoryChapter", "StoryChapter")
+                        .WithMany("Episodes")
+                        .HasForeignKey("StoryChapterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("CustomerManagement.API.Models.Story", "Story")
                         .WithMany("Chapters")
                         .HasForeignKey("StoryId")
@@ -223,11 +556,189 @@ namespace CustomerManagement.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Story");
+
+                    b.Navigation("StoryChapter");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.PaymentTransaction", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.SubscriptionPlan", "Plan")
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CustomerManagement.API.Models.User", "ReconciledByUser")
+                        .WithMany()
+                        .HasForeignKey("ReconciledByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CustomerManagement.API.Models.Story", "Story")
+                        .WithMany()
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CustomerManagement.API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("ReconciledByUser");
+
+                    b.Navigation("Story");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.ReadEvent", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.Chapter", null)
+                        .WithMany()
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.Story", null)
+                        .WithMany()
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.StoryChapter", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.Story", "Story")
+                        .WithMany("StoryChapters")
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Story");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.StoryGenre", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.Genre", "Genre")
+                        .WithMany("StoryGenres")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.Story", "Story")
+                        .WithMany("StoryGenres")
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Genre");
+
+                    b.Navigation("Story");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.StoryPurchase", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.Story", "Story")
+                        .WithMany()
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Story");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.SubscriptionPlanGenre", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.Genre", "Genre")
+                        .WithMany("SubscriptionPlanGenres")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.SubscriptionPlan", "Plan")
+                        .WithMany("PlanGenres")
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Genre");
+
+                    b.Navigation("Plan");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.SubscriptionPlanStory", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.SubscriptionPlan", "Plan")
+                        .WithMany("PlanStories")
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.Story", "Story")
+                        .WithMany()
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("Story");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.UserSubscription", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.SubscriptionPlan", "Plan")
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.Genre", b =>
+                {
+                    b.Navigation("StoryGenres");
+
+                    b.Navigation("SubscriptionPlanGenres");
                 });
 
             modelBuilder.Entity("CustomerManagement.API.Models.Story", b =>
                 {
                     b.Navigation("Chapters");
+
+                    b.Navigation("StoryChapters");
+
+                    b.Navigation("StoryGenres");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.StoryChapter", b =>
+                {
+                    b.Navigation("Episodes");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.SubscriptionPlan", b =>
+                {
+                    b.Navigation("PlanGenres");
+
+                    b.Navigation("PlanStories");
                 });
 #pragma warning restore 612, 618
         }

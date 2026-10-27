@@ -5,8 +5,8 @@
 | Thuộc tính | Giá trị |
 |---|---|
 | Sản phẩm | Hệ thống quản lý đọc truyện |
-| Phiên bản tài liệu | 1.0 |
-| Ngày lập | 20/10/2026 |
+| Phiên bản tài liệu | 1.1 |
+| Cập nhật | 27/10/2026 |
 | Trạng thái | Bản dự thảo, cần nhóm xác nhận các mục TBD |
 | Cơ sở | Product backlog, README và mã nguồn trong repository |
 
@@ -29,13 +29,14 @@ Backlog đặt mục tiêu rộng hơn phiên bản hiện có, gồm tài kho�
 ### 2.3 Phạm vi đã quan sát trong repository
 
 - Backend ASP.NET Core Web API, EF Core và SQL Server.
-- Web HTML/CSS/JavaScript có trang khám phá, chi tiết, đọc truyện, tài khoản và trang quản trị.
+- Web React/Vite có trang khám phá, chi tiết, đọc truyện, giao dịch, tài khoản và trang quản trị.
 - Android Kotlin/Jetpack Compose dùng Retrofit để gọi API.
 - Đăng ký, đăng nhập, JWT, endpoint lấy tài khoản hiện tại và kiểm soát quyền Admin.
-- CRUD truyện/chương/thể loại; tìm kiếm, lọc, sắp xếp và phân trang truyện; đọc chương đã phát hành; ghi nhận số lượt đọc.
+- CRUD truyện/chương/tập/thể loại; tìm kiếm, lọc, sắp xếp và phân trang truyện; mục lục Chương → nhiều Tập; kiểm tra quyền đọc và ghi nhận lượt đọc.
+- Thanh toán mô phỏng gói/truyện, gia hạn, xử lý giao dịch thất bại, lịch sử thanh toán và công cụ Admin đối soát/cấp quyền bù.
 - API CRUD khách hàng thuộc mô hình Customer riêng.
 
-Thanh toán, gói đọc, quyền mua, tiến độ đọc đồng bộ, theo dõi, thông báo, thảo luận, thống kê quản trị và đọc offline chưa được xem là chức năng đã hoàn thành. Chi tiết và trạng thái của từng yêu cầu nằm trong [Yêu cầu chức năng](SRS-Functional-Requirements.md) và [Ma trận truy vết](SRS-Traceability.md).
+Tiến độ đọc đồng bộ, theo dõi, thông báo, thảo luận, thống kê doanh thu và đọc offline chưa được xem là chức năng đã hoàn thành. Thanh toán trong phiên bản này là mô phỏng, không kết nối ngân hàng/cổng tiền thật. Chi tiết và trạng thái của từng yêu cầu nằm trong [Yêu cầu chức năng](SRS-Functional-Requirements.md) và [Ma trận truy vết](SRS-Traceability.md).
 
 ## 3. Thuật ngữ
 
@@ -45,8 +46,9 @@ Thanh toán, gói đọc, quyền mua, tiến độ đọc đồng bộ, theo d�
 | Thành viên | Tài khoản người đọc đã đăng ký; mã nguồn hiện đặt role là User. |
 | Quản trị viên | Tài khoản role Admin, được phép dùng API quản trị. |
 | Truyện | Tác phẩm có thông tin giới thiệu và một hoặc nhiều chương. |
-| Chương | Đơn vị nội dung có số thứ tự, tên, nội dung và thời điểm phát hành. |
-| Quyền đọc | Quyền truy cập nội dung; backlog dự kiến dựa trên nội dung miễn phí, gói còn hạn hoặc truyện đã mua. Luồng trả phí chưa triển khai. |
+| Chương | Nhóm nội dung trong một truyện, có số thứ tự/tên và chứa một hoặc nhiều Tập. |
+| Tập | Đơn vị nội dung có số tập trong Chương, tiêu đề, nội dung, trạng thái miễn phí và thời điểm phát hành. Mỗi tập vẫn có số đọc nội bộ để giữ URL cũ. |
+| Quyền đọc | Quyền truy cập Tập, dựa trên nội dung miễn phí, gói còn hạn đúng phạm vi hoặc truyện đã mua. Quyền mua truyện giữ nguyên sau khi gói hết hạn. |
 | SRS | Software Requirements Specification — đặc tả yêu cầu phần mềm. |
 | TBD | Nội dung cần chủ sản phẩm/nhóm xác nhận. |
 
@@ -121,7 +123,7 @@ Các yêu cầu dưới đây là mục tiêu chất lượng. Khi chưa ghi “
 ### 9.2 Tính đúng đắn và toàn vẹn dữ liệu
 
 - NFR-DATA-01: Mỗi username và email đăng ký chỉ thuộc về một tài khoản.
-- NFR-DATA-02: Số chương không trùng trong cùng một truyện; xóa truyện xóa các chương liên quan theo quan hệ cascade hiện tại.
+- NFR-DATA-02: Số Chương không trùng trong một truyện; số Tập không trùng trong cùng Chương. Số đọc nội bộ của Tập duy nhất trong truyện để giữ URL cũ.
 - NFR-DATA-03: Dữ liệu nhận từ client phải qua kiểm tra bắt buộc, giới hạn độ dài và quy tắc miền trước khi lưu.
 - NFR-DATA-04: Giao dịch thanh toán (khi xây dựng) phải có tính lũy đẳng hoặc cơ chế chống cấp quyền lặp; chi tiết TBD.
 

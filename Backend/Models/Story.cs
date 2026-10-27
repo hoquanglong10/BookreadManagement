@@ -9,7 +9,13 @@ public class Story
     public string Description { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string CoverTheme { get; set; } = string.Empty;
+    public string? CoverUrl { get; set; }
+    public string AccessType { get; set; } = "Free";
+    public decimal Price { get; set; }
+    public int FreeChapterCount { get; set; }
     public DateTime PublishedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public List<Chapter> Chapters { get; set; } = [];
+    public List<StoryChapter> StoryChapters { get; set; } = [];
+    public List<StoryGenre> StoryGenres { get; set; } = [];
 }

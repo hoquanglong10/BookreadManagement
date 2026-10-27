@@ -22,8 +22,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +35,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.huflit.quanlydoctruyen.data.ApiClient
 import com.huflit.quanlydoctruyen.data.StoryDetail
+import com.huflit.quanlydoctruyen.data.PaymentRequest
+import com.huflit.quanlydoctruyen.data.SessionManager
+import com.huflit.quanlydoctruyen.data.toMessage
 import com.huflit.quanlydoctruyen.data.UiState
 import com.huflit.quanlydoctruyen.data.load
 import com.huflit.quanlydoctruyen.ui.components.Badge
@@ -40,11 +45,13 @@ import com.huflit.quanlydoctruyen.ui.components.CoverPlaceholder
 import com.huflit.quanlydoctruyen.ui.components.ErrorBox
 import com.huflit.quanlydoctruyen.ui.components.LoadingBox
 import com.huflit.quanlydoctruyen.ui.components.StatusBadge
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 // PB13: thông tin truyện + danh sách chương kèm trạng thái truy cập
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StoryDetailScreen(storyId: Int, onRead: (Int) -> Unit, onBack: () -> Unit) {
+fun StoryDetailScreen(storyId: Int, onRead: (Int) -> Unit, onBack: () -> Unit, onLogin: () -> Unit, onPlans: () -> Unit) {
     var retry by remember { mutableIntStateOf(0) }
     val state by produceState<UiState<StoryDetail>>(UiState.Loading, storyId, retry) {
         value = UiState.Loading
@@ -62,15 +69,20 @@ fun StoryDetailScreen(storyId: Int, onRead: (Int) -> Unit, onBack: () -> Unit) {
         when (val s = state) {
             is UiState.Loading -> LoadingBox(Modifier.padding(padding))
             is UiState.Error -> ErrorBox(s.message, Modifier.padding(padding), onRetry = { retry++ })
-            is UiState.Success -> StoryDetailContent(s.data, onRead, Modifier.padding(padding))
+            is UiState.Success -> StoryDetailContent(s.data, onRead, onLogin, onPlans, { retry++ }, Modifier.padding(padding))
         }
     }
 }
 
 @Composable
-private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, modifier: Modifier) {
+private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogin: () -> Unit, onPlans: () -> Unit, onPurchaseSuccess: () -> Unit, modifier: Modifier) {
     val published = story.chapters.filter { it.isPublished }
-    val readable = published.filter { it.hasContent }
+    val readable = published.filter { it.hasContent && it.canRead }
+    val grouped = published.groupBy { it.storyChapterNumber.takeIf { number -> number > 0 } ?: it.number }.toSortedMap()
+    var purchaseBusy by remember(story.id) { mutableStateOf(false) }
+    var paymentMessage by remember(story.id) { mutableStateOf("") }
+    var simulateFailure by remember(story.id) { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     LazyColumn(modifier.fillMaxSize()) {
         item {
@@ -82,8 +94,17 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, modifi
                     Spacer(Modifier.height(6.dp))
                     Text("Tác giả: ${story.author}", style = MaterialTheme.typography.bodyMedium)
                     Text("Thể loại: ${story.genres.joinToString(", ") { it.name }}", style = MaterialTheme.typography.bodyMedium)
-                    Text("Số chương: ${published.size}", style = MaterialTheme.typography.bodyMedium)
+                    Text("${grouped.size} chương · ${published.size} tập", style = MaterialTheme.typography.bodyMedium)
                     Text("Lượt đọc: ${story.viewCount}", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        when (story.accessType) {
+                            "Paid" -> "Trả phí · ${story.price.toLong()} ₫"
+                            "Mixed" -> "Kết hợp · ${story.freeChapterCount} chương đầu miễn phí"
+                            else -> "Miễn phí"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Spacer(Modifier.height(6.dp))
                     StatusBadge(story.status)
                 }
@@ -100,8 +121,28 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, modifi
                 if (!story.description.isNullOrBlank()) {
                     Text(story.description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 12.dp))
                 }
+                if (story.accessType != "Free" && !story.hasPurchase) {
+                    Button(enabled = !purchaseBusy, onClick = {
+                        if (SessionManager.token == null) { onLogin(); return@Button }
+                        scope.launch {
+                            purchaseBusy = true; paymentMessage = ""
+                            try {
+                                val result = ApiClient.api.buyStory(story.id, PaymentRequest(UUID.randomUUID().toString(), simulateFailure))
+                                if (result.status == "Success") { paymentMessage = "Đã mở quyền đọc truyện."; onPurchaseSuccess() }
+                                else paymentMessage = result.failureReason ?: "Giao dịch thất bại, chưa cấp quyền."
+                            } catch (cause: Exception) { paymentMessage = cause.toMessage() }
+                            finally { purchaseBusy = false }
+                        }
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Text(if (purchaseBusy) "Đang xử lý…" else "Mua truyện · ${story.price.toLong()} ₫")
+                    }
+                    TextButton(onClick = { simulateFailure = !simulateFailure }) { Text(if (simulateFailure) "Đang mô phỏng giao dịch thất bại" else "Dùng thử trạng thái giao dịch thất bại") }
+                }
+                if (story.hasPurchase) Text("Đã sở hữu quyền đọc trọn truyện.", color = MaterialTheme.colorScheme.primary)
+                if (story.hasPlanAccess && !story.hasPurchase) TextButton(onClick = onPlans) { Text("Gói đọc đang cấp quyền · Xem gói và gia hạn") }
+                if (paymentMessage.isNotBlank()) Text(paymentMessage, color = MaterialTheme.colorScheme.primary)
                 Text(
-                    "Danh sách chương",
+                    "Mục lục chương & tập",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -113,20 +154,26 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, modifi
             item { Text("Truyện chưa có chương nào", Modifier.padding(16.dp)) }
         }
 
-        items(published, key = { it.id }) { c ->
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = c.hasContent) { onRead(c.number) }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Chương ${c.number}: ${c.title}", Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                if (!c.hasContent) Badge("Đang biên soạn", Color(0xFFF3F4F6), Color(0xFF6B7280))
-                else if (c.isFree) Badge("Miễn phí", Color(0xFFDCFCE7), Color(0xFF15803D))
-                else Badge("Trả phí", Color(0xFFFFEDD5), Color(0xFFC2410C))
+        items(grouped.entries.toList(), key = { it.key }) { (groupNumber, episodes) ->
+            Column(Modifier.fillMaxWidth()) {
+                val groupTitle = episodes.firstOrNull()?.storyChapterTitle?.takeIf(String::isNotBlank)
+                Text("Chương $groupNumber${groupTitle?.let { ": $it" }.orEmpty()}", Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 6.dp), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                episodes.sortedBy { it.episodeNumber }.forEach { episode ->
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .clickable(enabled = episode.hasContent && episode.canRead) { onRead(episode.number) }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Tập ${episode.episodeNumber}: ${episode.title}", Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        if (!episode.hasContent) Badge("Đang biên soạn", Color(0xFFF3F4F6), Color(0xFF6B7280))
+                        else if (episode.canRead && episode.accessLabel == "Đã mở khóa") Badge("Đã mở khóa", Color(0xFFDBEAFE), Color(0xFF1D4ED8))
+                        else if (episode.canRead || episode.isFree) Badge("Miễn phí", Color(0xFFDCFCE7), Color(0xFF15803D))
+                        else Badge("Trả phí", Color(0xFFFFEDD5), Color(0xFFC2410C))
+                    }
+                    HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+                }
             }
-            HorizontalDivider(Modifier.padding(horizontal = 16.dp))
         }
     }
 }

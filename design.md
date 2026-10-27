@@ -34,36 +34,39 @@ book from the cover shelf, and continue into a comfortable reading view.
 
 ## Theme: Webnovel Reading Catalog
 
-The catalog uses a white background, blue controls, and a blue/orange wordmark.
-Use compact sans-serif typography, fine gray dividers, and portrait book covers.
-If a story has no cover URL, draw a small themed illustration from the story
+The catalog uses a soft blue-gray canvas, white reading surfaces, confident
+blue controls, and the existing blue/orange wordmark. Use compact sans-serif
+typography, clearly separated sections, gentle elevation, and portrait book
+covers. If a story has no cover URL, draw a themed illustration from the story
 record; use the supplied cover URL when one is available.
 
 ```css
---color-paper:       #ffffff;
+--color-paper:       #f3f5f8;
+--color-paper-2:     #eef2f7;
 --color-surface:     #ffffff;
---color-surface-2:   #f7f8fa;
---color-rule:        #e3e6ea;
---color-muted:       #737b85;
---color-ink:         #252a30;
+--color-surface-2:   #f8fafc;
+--color-rule:        #e1e7ef;
+--color-muted:       #667487;
+--color-ink:         #1f2b3a;
 --color-header:      #ffffff;
---color-accent:      #3b8bd2;
---color-accent-dark: #2878bf;
---color-focus:       #1d6aa9;
+--color-accent:      #2c86dc;
+--color-accent-dark: #1769b7;
+--color-focus:       #155eaa;
+--color-brand-orange:#f47b45;
 ```
 
 ## Typography
 
-- Interface: Arial/Segoe UI system sans-serif, weights 400–700.
+- Interface: Segoe UI/Arial system sans-serif, weights 400–700.
 - Reader prose: Georgia, with adjustable text size.
 - Metadata uses compact proportional text, not monospaced labels.
 
 ## Spacing, shape, and motion
 
 - `Frontend/WebApp/src/tokens.css` is the source of truth for design tokens.
-- Use compact spacing and small corner radii.
-- Keep cards white with fine borders. Reserve subtle shadows for menus and
-  overlays.
+- Use compact spacing, readable card padding, and moderate corner radii.
+- Separate white content panels from the soft canvas with fine borders and
+  gentle elevation. Reserve stronger shadows for book covers and overlays.
 - Interaction uses short color/opacity changes, immediate focus rings, and a
   reduced-motion fallback. No auto-rotating content.
 - Verify responsive layouts at 320, 375, 414, and 768 CSS pixels.
@@ -93,8 +96,8 @@ record; use the supplied cover URL when one is available.
 
 ## What every page shares
 
-- The Đọc Truyện wordmark, white/gray panels, blue links, and compact sans-serif
-  navigation.
+- The Đọc Truyện wordmark, soft canvas, white panels, blue links, and compact
+  sans-serif navigation.
 - A consistent navigation shell, action style, focus treatment, and spacing.
 - Real status messages for loading, empty results, API errors, and form errors.
 
@@ -113,12 +116,12 @@ The canonical tokens live in [Frontend/WebApp/src/tokens.css](Frontend/WebApp/sr
 
 ```css
 @theme {
-  --color-paper: #f4f5f7;
+  --color-paper: #f3f5f8;
   --color-surface: #ffffff;
-  --color-ink: #252a30;
-  --color-accent: #3b8bd2;
-  --font-display: Arial, "Segoe UI", sans-serif;
-  --font-body: Arial, "Segoe UI", sans-serif;
+  --color-ink: #1f2b3a;
+  --color-accent: #2c86dc;
+  --font-display: "Segoe UI", Arial, sans-serif;
+  --font-body: "Segoe UI", Arial, sans-serif;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
@@ -131,14 +134,14 @@ The canonical tokens live in [Frontend/WebApp/src/tokens.css](Frontend/WebApp/sr
 ```json
 {
   "color": {
-    "paper": { "$value": "#f4f5f7", "$type": "color" },
+    "paper": { "$value": "#f3f5f8", "$type": "color" },
     "surface": { "$value": "#ffffff", "$type": "color" },
-    "ink": { "$value": "#252a30", "$type": "color" },
-    "accent": { "$value": "#3b8bd2", "$type": "color" }
+    "ink": { "$value": "#1f2b3a", "$type": "color" },
+    "accent": { "$value": "#2c86dc", "$type": "color" }
   },
   "font": {
-    "display": { "$value": "Arial", "$type": "fontFamily" },
-    "body": { "$value": "Arial", "$type": "fontFamily" }
+    "display": { "$value": "Segoe UI", "$type": "fontFamily" },
+    "body": { "$value": "Segoe UI", "$type": "fontFamily" }
   },
   "space": {
     "md": { "$value": "1rem", "$type": "dimension" },
@@ -151,15 +154,15 @@ The canonical tokens live in [Frontend/WebApp/src/tokens.css](Frontend/WebApp/sr
 
 ```css
 :root {
-  --background: #f4f5f7;
-  --foreground: #252a30;
-  --primary: #2878bf;
+  --background: #f3f5f8;
+  --foreground: #1f2b3a;
+  --primary: #1769b7;
   --primary-foreground: #ffffff;
-  --muted: #f7f8fa;
-  --muted-foreground: #737b85;
-  --border: #e3e6ea;
-  --input: #cbd1d8;
-  --ring: #1d6aa9;
-  --radius: 0.25rem;
+  --muted: #f8fafc;
+  --muted-foreground: #667487;
+  --border: #e1e7ef;
+  --input: #c7d1de;
+  --ring: #155eaa;
+  --radius: 0.65rem;
 }
 ```

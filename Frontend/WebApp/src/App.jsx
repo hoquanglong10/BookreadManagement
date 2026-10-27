@@ -6,11 +6,17 @@ import AdminCustomersPage from "./pages/AdminCustomersPage.jsx";
 import AdminDashboardPage from "./pages/AdminDashboardPage.jsx";
 import AdminGenresPage from "./pages/AdminGenresPage.jsx";
 import AdminStoriesPage from "./pages/AdminStoriesPage.jsx";
+import AdminPlansPage from "./pages/AdminPlansPage.jsx";
+import AdminReadEventsPage from "./pages/AdminReadEventsPage.jsx";
+import AdminPaymentsPage from "./pages/AdminPaymentsPage.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 import ReaderPage from "./pages/ReaderPage.jsx";
 import ReadingHistoryPage from "./pages/ReadingHistoryPage.jsx";
+import PaymentHistoryPage from "./pages/PaymentHistoryPage.jsx";
+import PlansPage from "./pages/PlansPage.jsx";
 import StoryPage from "./pages/StoryPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import SiteHeader from "./components/SiteHeader.jsx";
@@ -38,6 +44,9 @@ function AppRoutes() {
         <Route path="history" element={<ReadingHistoryPage />} />
         <Route path="story/:id" element={<StoryPage />} />
         <Route path="account" element={<AuthPage />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="plans" element={<PlansPage />} />
+        <Route path="payments" element={<PaymentHistoryPage />} />
       </Route>
       <Route path="read/:storyId/:chapterNumber" element={<ReaderPage />} />
       <Route path="admin" element={<ProtectedRoute role="Admin"><AdminLayout /></ProtectedRoute>}>
@@ -45,6 +54,9 @@ function AppRoutes() {
         <Route path="stories" element={<AdminStoriesPage />} />
         <Route path="genres" element={<AdminGenresPage />} />
         <Route path="customers" element={<AdminCustomersPage />} />
+        <Route path="plans" element={<AdminPlansPage />} />
+        <Route path="read-events" element={<AdminReadEventsPage />} />
+        <Route path="payments" element={<AdminPaymentsPage />} />
       </Route>
       <Route path="404" element={<NotFoundPage />} />
       <Route path="*" element={<NotFoundPage />} />

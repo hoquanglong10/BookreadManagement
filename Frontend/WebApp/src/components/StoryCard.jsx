@@ -16,7 +16,7 @@ export default function StoryCard({ story, compact = false }) {
         <h3 className="story-card__title"><Link to={`/story/${story.id}`} title={story.title}>{story.title}</Link></h3>
         <p className="story-card__author">{story.author}</p>
         <p className="story-card__description">{story.description}</p>
-        <div className="story-card__foot"><span>{story.chapterCount ?? 0} chương</span><Link to={`/story/${story.id}`}>Chi tiết <span aria-hidden="true">→</span></Link></div>
+        <div className="story-card__foot"><span>{story.storyChapterCount ?? 0} chương · {story.episodeCount ?? story.chapterCount ?? 0} tập</span><Link to={`/story/${story.id}`}>Chi tiết <span aria-hidden="true">→</span></Link></div>
       </div>
     </article>
   );

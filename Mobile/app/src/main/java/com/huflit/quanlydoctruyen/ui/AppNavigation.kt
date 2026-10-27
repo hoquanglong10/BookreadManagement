@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.huflit.quanlydoctruyen.ui.screens.HomeScreen
 import com.huflit.quanlydoctruyen.ui.screens.LoginScreen
 import com.huflit.quanlydoctruyen.ui.screens.ReadChapterScreen
+import com.huflit.quanlydoctruyen.ui.screens.ProfileScreen
 import com.huflit.quanlydoctruyen.ui.screens.RegisterScreen
 import com.huflit.quanlydoctruyen.ui.screens.StoryDetailScreen
 
@@ -22,7 +23,8 @@ fun AppNavigation() {
         composable("home") {
             HomeScreen(
                 onOpenStory = { id -> nav.navigate("story/$id") },
-                onLogin = { nav.navigate("login") }
+                onLogin = { nav.navigate("login") },
+                onProfile = { nav.navigate("profile") }
             )
         }
 
@@ -31,7 +33,9 @@ fun AppNavigation() {
             StoryDetailScreen(
                 storyId = id,
                 onRead = { number -> nav.navigate("story/$id/chapter/$number") },
-                onBack = { nav.popBackStack() }
+                onBack = { nav.popBackStack() },
+                onLogin = { nav.navigate("login") },
+                onPlans = { nav.navigate("profile") }
             )
         }
 
@@ -52,7 +56,8 @@ fun AppNavigation() {
                         popUpTo(READ_ROUTE) { inclusive = true }
                     }
                 },
-                onBack = { nav.popBackStack() }
+                onBack = { nav.popBackStack() },
+                onPlans = { nav.navigate("profile") }
             )
         }
 
@@ -69,6 +74,10 @@ fun AppNavigation() {
                 onSuccess = { nav.popBackStack("login", inclusive = false) },
                 onBack = { nav.popBackStack() }
             )
+        }
+
+        composable("profile") {
+            ProfileScreen(onBack = { nav.popBackStack() })
         }
     }
 }

@@ -21,15 +21,22 @@ Mặc định profile HTTP chạy tại `http://localhost:5059`. Mở Swagger �
 ## API
 
 - `GET /api/stories`: danh sách; hỗ trợ `search`/`keyword`, `genreId`, `status`, `sort`, `page`, `pageSize`.
-- `GET /api/stories/{id}`, `GET /api/stories/{id}/chapters`: chi tiết và mục lục.
-- `GET /api/stories/{storyId}/chapters/{number}`: nội dung chương đã phát hành; tăng lượt đọc.
+- `GET /api/stories/{id}`, `GET /api/stories/{id}/chapters`: chi tiết và mục lục Chương → nhiều Tập; `chapters` dạng phẳng vẫn có để tương thích client cũ.
+- `GET /api/stories/{storyId}/chapters/{number}`: nội dung Tập đã phát hành theo số đọc nội bộ cũ; tăng lượt đọc.
 - `GET /api/genres`: danh sách thể loại.
 - `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`: tài khoản và xác thực.
+- `PUT /api/auth/profile`, `PUT /api/auth/password`: cập nhật tên hiển thị/avatar URL và đổi mật khẩu.
+- `GET /api/admin/read-events?from=...&to=...`: Admin xem thống kê lượt đọc theo chương trong khoảng ngày.
+- `GET /api/plans/available`: danh sách gói đang mở bán; `/api/plans` (Admin) quản lý gói và phạm vi.
+- `POST /api/payments/plans/{id}`, `POST /api/payments/stories/{id}`, `GET /api/payments/mine`: đăng ký/gia hạn, mua truyện và lịch sử giao dịch của thành viên.
+- `/api/admin/payments` (Admin): lọc giao dịch và `POST /{id}/reconcile` ghi chú đối soát/cấp quyền bù.
 - `/api/customers`, `/api/stories`, `/api/genres` (ghi), và quản lý chương yêu cầu JWT role `Admin`.
 - `GET /api/health`: trạng thái API/database.
 
-Các API admin cho phép thêm/sửa/xóa truyện, chương và thể loại. Chương có nội dung, cờ miễn phí và thời điểm phát hành. Các chương cũ chưa có nội dung được đánh dấu “Đang biên soạn” và chưa mở đọc được.
+Các API admin cho phép thêm/sửa/xóa truyện, Chương, Tập và thể loại. Mỗi Tập có số thứ tự trong Chương, nội dung, cờ miễn phí và thời điểm phát hành. Các giao dịch chỉ là mô phỏng, không kết nối ngân hàng/cổng tiền thật.
+
+Trong Development, API nạp bổ sung các tập truyện mẫu nguyên tác và hai gói đọc minh họa theo cách idempotent. Một truyện dùng quyền Mixed và một truyện dùng Paid để có thể thử mua/gia hạn; seeder không tự chạy ở môi trường khác. Chạy `dotnet ef database update` trước khi khởi động lần đầu.
 
 ## Migration
 
-Sau khi cập nhật mã nguồn, chạy `dotnet ef database update`. Migration `AddReaderAndGenres` bổ sung nội dung chương, lịch phát hành, lượt đọc, thời gian cập nhật truyện và bảng thể loại. Migration tạo dữ liệu mẫu cho thể loại và nội dung chương đầu để có thể thử luồng đọc ngay; admin có thể cập nhật hoặc bổ sung nội dung trong trang quản lý.
+Sau khi cập nhật mã nguồn, chạy `dotnet ef database update`. Migration mới tạo giao dịch và bảng Chương; mỗi bản ghi nội dung cũ được giữ nguyên và chuyển thành Tập 1 của một Chương cùng tên. Số đọc nội bộ cũ được bảo toàn để URL reader/API cũ không đổi. Migration không tự áp dụng khi khởi động API.

@@ -6,7 +6,10 @@ const adminLinks = [
   { to: "/admin", label: "Tổng quan", end: true, mark: "01" },
   { to: "/admin/stories", label: "Truyện & chương", mark: "02" },
   { to: "/admin/genres", label: "Thể loại", mark: "03" },
-  { to: "/admin/customers", label: "Tài khoản", mark: "04" }
+  { to: "/admin/customers", label: "Tài khoản", mark: "04" },
+  { to: "/admin/plans", label: "Gói đọc", mark: "05" },
+  { to: "/admin/read-events", label: "Lượt đọc", mark: "06" },
+  { to: "/admin/payments", label: "Giao dịch", mark: "07" }
 ];
 
 export default function AdminLayout() {

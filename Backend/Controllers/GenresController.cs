@@ -20,7 +20,7 @@ public class GenresController(ApplicationDbContext context) : ControllerBase
             {
                 genre.Id,
                 genre.Name,
-                StoryCount = context.Stories.Count(story => story.Genre == genre.Name)
+                StoryCount = context.StoryGenres.Count(link => link.GenreId == genre.Id)
             })
             .ToListAsync(cancellationToken);
         return Ok(genres);
@@ -67,8 +67,10 @@ public class GenresController(ApplicationDbContext context) : ControllerBase
     {
         var genre = await context.Genres.FindAsync([id], cancellationToken);
         if (genre is null) return NotFound(new { message = "Không tìm thấy thể loại." });
-        if (await context.Stories.AnyAsync(story => story.Genre == genre.Name, cancellationToken))
-            return Conflict(new { message = "Không thể xóa thể loại đang được truyện sử dụng." });
+        if (await context.StoryGenres.AnyAsync(link => link.GenreId == genre.Id, cancellationToken)
+            || await context.Stories.AnyAsync(story => story.Genre == genre.Name, cancellationToken)
+            || await context.SubscriptionPlanGenres.AnyAsync(link => link.GenreId == genre.Id, cancellationToken))
+            return Conflict(new { message = "Không thể xóa thể loại đang được truyện hoặc gói đọc sử dụng." });
         context.Genres.Remove(genre);
         await context.SaveChangesAsync(cancellationToken);
         return NoContent();
