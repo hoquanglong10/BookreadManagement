@@ -19,11 +19,15 @@ object SessionManager {
     private const val KEY_EXPIRES = "expiresAt"
     private const val KEY_FONT = "reader_font"
     private const val KEY_DARK = "reader_dark"
+    private const val KEY_READ_EPISODES = "read_episodes"
 
     private lateinit var prefs: SharedPreferences
     private val gson = Gson()
 
     var user by mutableStateOf<UserDto?>(null)
+        private set
+
+    var readProgressRevision by mutableStateOf(0)
         private set
 
     var token: String? = null
@@ -64,6 +68,21 @@ object SessionManager {
         prefs.edit().remove(KEY_TOKEN).remove(KEY_USER).remove(KEY_EXPIRES).apply()
         token = null
         user = null
+    }
+
+    fun markEpisodeRead(storyId: Int, episodeId: Int) {
+        val identity = user?.id?.toString() ?: "guest"
+        val key = "$identity:$storyId:$episodeId"
+        val readEpisodes = prefs.getStringSet(KEY_READ_EPISODES, emptySet()).orEmpty().toMutableSet()
+        if (readEpisodes.add(key)) {
+            prefs.edit().putStringSet(KEY_READ_EPISODES, readEpisodes).apply()
+            readProgressRevision++
+        }
+    }
+
+    fun isEpisodeRead(storyId: Int, episodeId: Int): Boolean {
+        val identity = user?.id?.toString() ?: "guest"
+        return prefs.getStringSet(KEY_READ_EPISODES, emptySet()).orEmpty().contains("$identity:$storyId:$episodeId")
     }
 
     var readerFontSize: Int

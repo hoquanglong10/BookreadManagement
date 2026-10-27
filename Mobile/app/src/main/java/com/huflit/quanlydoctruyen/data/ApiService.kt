@@ -53,6 +53,9 @@ interface ApiService {
     @GET("api/stories/{id}")
     suspend fun storyDetail(@Path("id") id: Int): StoryDetail
 
+    @GET("api/reading-progress")
+    suspend fun readingProgress(): ReadingProgressResponse
+
     @GET("api/plans/available")
     suspend fun availablePlans(): List<SubscriptionPlanDto>
 

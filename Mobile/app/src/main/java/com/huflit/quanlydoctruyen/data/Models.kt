@@ -74,7 +74,8 @@ data class ChapterListItem(
     val publishAt: String = "",
     val hasContent: Boolean = true,
     val canRead: Boolean = true,
-    val accessLabel: String = ""
+    val accessLabel: String = "",
+    val isRead: Boolean = false
 )
 
 data class StoryDetail(
@@ -90,10 +91,28 @@ data class StoryDetail(
     val freeChapterCount: Int = 0,
     val hasPurchase: Boolean = false,
     val hasPlanAccess: Boolean = false,
+    val lastReadNumber: Int? = null,
     val storyChapterCount: Int = 0,
     val viewCount: Long,
     val genres: List<GenreRef>,
     val chapters: List<ChapterListItem>
+)
+
+data class ReadingProgressResponse(val items: List<ReadingProgressItem> = emptyList())
+
+data class ReadingProgressItem(
+    val storyId: Int,
+    val storyTitle: String,
+    val author: String,
+    val genre: String = "",
+    val coverTheme: String = "",
+    val coverUrl: String? = null,
+    val chapterNumber: Int,
+    val chapterTitle: String,
+    val storyChapterNumber: Int,
+    val storyChapterTitle: String,
+    val episodeNumber: Int,
+    val readAt: String
 )
 
 data class ChapterContent(

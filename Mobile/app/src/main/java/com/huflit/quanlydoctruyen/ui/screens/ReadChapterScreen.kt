@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +79,9 @@ fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: 
                 }
                 is UiState.Success -> {
                     val c = s.data
+                    LaunchedEffect(c.storyId, c.number) {
+                        SessionManager.markEpisodeRead(c.storyId, c.number)
+                    }
                     Column(Modifier.verticalScroll(rememberScrollState(), true).padding(16.dp)) {
                         Text(
                             "Chương ${c.storyChapterNumber.takeIf { it > 0 } ?: c.number}${c.storyChapterTitle.takeIf { it.isNotBlank() }?.let { ": $it" }.orEmpty()} · Tập ${c.episodeNumber}: ${c.title}",

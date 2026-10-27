@@ -29,7 +29,7 @@ Trạng thái dưới đây được suy ra từ mã nguồn và xác minh môi 
 | PB23 | Giao dịch thất bại | Đã triển khai | Giao dịch thất bại được lưu với lý do/trạng thái; không cấp quyền và có thể thử lại bằng yêu cầu mới. |
 | PB24 | Đối soát và cấp quyền bù | Đã triển khai | Admin xem giao dịch, ghi chú xác minh và cấp quyền bù; lưu Admin/thời điểm, thao tác lặp không cấp trùng. |
 | PB25 | Lịch sử thanh toán/gói/truyện mua | Đã triển khai | Thành viên xem lịch sử riêng trên Web và Android; Admin lọc danh sách giao dịch. |
-| PB26 | Tiến độ đọc đồng bộ | Chưa triển khai | Chưa có entity/API lưu vị trí đọc. |
+| PB26 | Tiến độ đọc đồng bộ | Đã triển khai | Lượt đọc tập đã đăng nhập được lưu trong ReadEvents; API trả tập đã đọc, tập gần nhất; Web và Android đồng bộ để tiếp tục trên thiết bị khác. |
 | PB27 | Danh sách truyện đang đọc | Chưa triển khai | Chưa có tiến độ đọc để tổng hợp. |
 | PB28 | Theo dõi truyện | Chưa triển khai | Chưa có quan hệ theo dõi. |
 | PB29 | Thông báo chương mới | Chưa triển khai | Chưa có thông báo. |

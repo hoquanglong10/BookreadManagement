@@ -2,6 +2,7 @@ package com.huflit.quanlydoctruyen.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,7 +54,7 @@ import java.util.UUID
 @Composable
 fun StoryDetailScreen(storyId: Int, onRead: (Int) -> Unit, onBack: () -> Unit, onLogin: () -> Unit, onPlans: () -> Unit) {
     var retry by remember { mutableIntStateOf(0) }
-    val state by produceState<UiState<StoryDetail>>(UiState.Loading, storyId, retry) {
+    val state by produceState<UiState<StoryDetail>>(UiState.Loading, storyId, retry, SessionManager.readProgressRevision) {
         value = UiState.Loading
         value = load { ApiClient.api.storyDetail(storyId) }
     }
@@ -78,6 +79,8 @@ fun StoryDetailScreen(storyId: Int, onRead: (Int) -> Unit, onBack: () -> Unit, o
 private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogin: () -> Unit, onPlans: () -> Unit, onPurchaseSuccess: () -> Unit, modifier: Modifier) {
     val published = story.chapters.filter { it.isPublished }
     val readable = published.filter { it.hasContent && it.canRead }
+    val lastReadEpisode = story.lastReadNumber?.let { lastNumber -> readable.find { it.number == lastNumber } }
+    val continueEpisode = lastReadEpisode ?: readable.firstOrNull()
     val grouped = published.groupBy { it.storyChapterNumber.takeIf { number -> number > 0 } ?: it.number }.toSortedMap()
     var purchaseBusy by remember(story.id) { mutableStateOf(false) }
     var paymentMessage by remember(story.id) { mutableStateOf("") }
@@ -113,9 +116,9 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
 
         item {
             Column(Modifier.padding(horizontal = 16.dp)) {
-                if (readable.isNotEmpty()) {
-                    Button(onClick = { onRead(readable.first().number) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Đọc từ đầu")
+                if (continueEpisode != null) {
+                    Button(onClick = { onRead(continueEpisode.number) }, modifier = Modifier.fillMaxWidth()) {
+                        Text(if (lastReadEpisode != null) "Đọc tiếp" else "Đọc từ đầu")
                     }
                 }
                 if (!story.description.isNullOrBlank()) {
@@ -166,10 +169,18 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Tập ${episode.episodeNumber}: ${episode.title}", Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        if (!episode.hasContent) Badge("Đang biên soạn", Color(0xFFF3F4F6), Color(0xFF6B7280))
-                        else if (episode.canRead && episode.accessLabel == "Đã mở khóa") Badge("Đã mở khóa", Color(0xFFDBEAFE), Color(0xFF1D4ED8))
-                        else if (episode.canRead || episode.isFree) Badge("Miễn phí", Color(0xFFDCFCE7), Color(0xFF15803D))
-                        else Badge("Trả phí", Color(0xFFFFEDD5), Color(0xFFC2410C))
+                        val isRead = episode.isRead || SessionManager.isEpisodeRead(story.id, episode.number)
+                        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Badge(
+                                if (isRead) "Đã đọc" else "Chưa đọc",
+                                if (isRead) Color(0xFFDCFCE7) else Color(0xFFF3F4F6),
+                                if (isRead) Color(0xFF15803D) else Color(0xFF6B7280)
+                            )
+                            if (!episode.hasContent) Badge("Đang biên soạn", Color(0xFFF3F4F6), Color(0xFF6B7280))
+                            else if (episode.canRead && episode.accessLabel == "Đã mở khóa") Badge("Đã mở khóa", Color(0xFFDBEAFE), Color(0xFF1D4ED8))
+                            else if (episode.canRead || episode.isFree) Badge("Miễn phí", Color(0xFFDCFCE7), Color(0xFF15803D))
+                            else Badge("Trả phí", Color(0xFFFFEDD5), Color(0xFFC2410C))
+                        }
                     }
                     HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                 }

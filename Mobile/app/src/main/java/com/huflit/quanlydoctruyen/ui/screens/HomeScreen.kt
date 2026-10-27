@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.huflit.quanlydoctruyen.data.ApiClient
 import com.huflit.quanlydoctruyen.data.Genre
 import com.huflit.quanlydoctruyen.data.PagedResult
+import com.huflit.quanlydoctruyen.data.ReadingProgressItem
 import com.huflit.quanlydoctruyen.data.SessionManager
 import com.huflit.quanlydoctruyen.data.StoryListItem
 import com.huflit.quanlydoctruyen.data.toMessage
@@ -83,12 +84,21 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () ->
     val newestStories = remember { mutableStateListOf<StoryListItem>() }
     val popularStories = remember { mutableStateListOf<StoryListItem>() }
     val genres = remember { mutableStateListOf<Genre>() }
+    val readingProgress = remember { mutableStateListOf<ReadingProgressItem>() }
     var page by remember { mutableIntStateOf(1) }
     var totalPages by remember { mutableIntStateOf(1) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var reloadKey by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
+    val user = SessionManager.user
+
+    LaunchedEffect(user?.id) {
+        readingProgress.clear()
+        if (user != null) {
+            try { readingProgress.addAll(ApiClient.api.readingProgress().items) } catch (_: Exception) { }
+        }
+    }
 
     // Tải trang đầu mỗi khi đổi từ khóa / cách sắp xếp
     LaunchedEffect(Unit) {
@@ -141,8 +151,6 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () ->
             }
         }
     }
-
-    val user = SessionManager.user
 
     Scaffold(
         topBar = {
@@ -212,6 +220,9 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () ->
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     if (keyword.isBlank() && selectedGenreId == null) {
+                        if (user != null && readingProgress.isNotEmpty()) {
+                            item { ReadingProgressShelf(readingProgress, onOpenStory) }
+                        }
                         item { StoryShelf("Mới cập nhật", updatedStories, onOpenStory) }
                         item { StoryShelf("Mới phát hành", newestStories, onOpenStory) }
                         item { StoryShelf("Đọc nhiều", popularStories, onOpenStory) }
@@ -224,6 +235,24 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () ->
                             if (loading) CircularProgressIndicator(Modifier.padding(8.dp))
                             else if (page < totalPages) OutlinedButton(onClick = { loadMore() }) { Text("Xem thêm") }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReadingProgressShelf(progress: List<ReadingProgressItem>, onOpenStory: (Int) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Đọc tiếp", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(progress, key = { "progress-${it.storyId}" }) { item ->
+                Card(Modifier.width(220.dp).clickable { onOpenStory(item.storyId) }) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text(item.storyTitle, maxLines = 2, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
+                        Text("Chương ${item.storyChapterNumber} · Tập ${item.episodeNumber}", style = MaterialTheme.typography.bodySmall)
+                        Text("Mở lại truyện để tiếp tục →", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }

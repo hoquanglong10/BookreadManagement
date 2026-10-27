@@ -100,6 +100,24 @@ public class StoriesController(ApplicationDbContext context, IWebHostEnvironment
             .Include(item => item.Chapters.Where(chapter => includeUnpublished || (chapter.PublishAt <= now && !string.IsNullOrWhiteSpace(chapter.Content)))).ThenInclude(chapter => chapter.StoryChapter)
             .SingleOrDefaultAsync(item => item.Id == id, cancellationToken);
         if (story is null) return NotFound(new { message = "Không tìm thấy truyện." });
+        var readChapterIds = userId.HasValue
+            ? (await context.ReadEvents.AsNoTracking()
+                .Where(readEvent => readEvent.UserId == userId.Value && readEvent.StoryId == id)
+                .Select(readEvent => readEvent.ChapterId)
+                .Distinct()
+                .ToListAsync(cancellationToken)).ToHashSet()
+            : new HashSet<int>();
+        var lastReadChapterId = userId.HasValue
+            ? await context.ReadEvents.AsNoTracking()
+                .Where(readEvent => readEvent.UserId == userId.Value && readEvent.StoryId == id)
+                .OrderByDescending(readEvent => readEvent.ViewedAt)
+                .ThenByDescending(readEvent => readEvent.Id)
+                .Select(readEvent => (int?)readEvent.ChapterId)
+                .FirstOrDefaultAsync(cancellationToken)
+            : null;
+        var lastReadNumber = lastReadChapterId.HasValue
+            ? story.Chapters.Where(chapter => chapter.Id == lastReadChapterId.Value).Select(chapter => (int?)chapter.Number).FirstOrDefault()
+            : null;
         var hasPurchase = userId.HasValue && await HasStoryPurchaseAsync(userId.Value, id, cancellationToken);
         var hasPlanAccess = userId.HasValue && await HasPlanAccessAsync(userId.Value, story, cancellationToken);
         var chapters = story.Chapters.OrderBy(chapter => chapter.StoryChapter.Number)
@@ -115,6 +133,7 @@ public class StoriesController(ApplicationDbContext context, IWebHostEnvironment
                 StoryChapterNumber = chapter.StoryChapter.Number,
                 StoryChapterTitle = chapter.StoryChapter.Title,
                 chapter.EpisodeNumber,
+                IsRead = readChapterIds.Contains(chapter.Id),
                 IsFree = isFree, CanRead = canRead,
                 AccessLabel = hasPurchase || hasPlanAccess ? "Đã mở khóa" : isFree ? "Miễn phí" : "Trả phí",
                 HasContent = chapter.Content != "", IsPublished = chapter.PublishAt <= now,
@@ -129,6 +148,7 @@ public class StoriesController(ApplicationDbContext context, IWebHostEnvironment
             story.Description, story.Status, story.CoverTheme, story.CoverUrl,
             story.AccessType, story.Price, story.FreeChapterCount, story.PublishedAt,
             HasPurchase = hasPurchase, HasPlanAccess = hasPlanAccess,
+            LastReadNumber = lastReadNumber,
             ChapterCount = chapters.Count,
             EpisodeCount = chapters.Count,
             StoryChapterCount = chapters.Select(chapter => chapter.StoryChapterId).Distinct().Count(),
@@ -174,6 +194,8 @@ public class StoriesController(ApplicationDbContext context, IWebHostEnvironment
                 StoryChapterTitle = chapter.StoryChapter.Title,
                 chapter.EpisodeNumber,
                 chapter.Title,
+                IsRead = userId.HasValue && context.ReadEvents.Any(readEvent =>
+                    readEvent.UserId == userId.Value && readEvent.StoryId == id && readEvent.ChapterId == chapter.Id),
                 IsFree = story.AccessType == "Free" || (story.AccessType == "Mixed" && (chapter.StoryChapter.Number <= story.FreeChapterCount || chapter.IsFree)),
                 CanRead = includeUnpublished || hasPurchase || hasPlanAccess || story.AccessType == "Free" || (story.AccessType == "Mixed" && (chapter.StoryChapter.Number <= story.FreeChapterCount || chapter.IsFree)),
                 AccessLabel = hasPurchase || hasPlanAccess ? "Đã mở khóa" : (story.AccessType == "Free" || (story.AccessType == "Mixed" && (chapter.StoryChapter.Number <= story.FreeChapterCount || chapter.IsFree))) ? "Miễn phí" : "Trả phí",

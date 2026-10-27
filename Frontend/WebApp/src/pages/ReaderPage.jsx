@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/StatePanel.jsx";
 import { loadChapter, loadStory } from "../services/catalogService.js";
 import { saveReadingProgress } from "../services/readingHistory.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const SETTINGS_KEY = "bookread.reader.settings";
 
@@ -17,6 +18,7 @@ function readSettings() {
 
 export default function ReaderPage() {
   const { storyId, chapterNumber } = useParams();
+  const { user } = useAuth();
   const [chapter, setChapter] = useState(null);
   const [story, setStory] = useState(null);
   const [settings, setSettings] = useState(readSettings);
@@ -44,13 +46,14 @@ export default function ReaderPage() {
           storyTitle: storyData.title,
           author: storyData.author,
           genre: storyData.genre,
-          coverTheme: storyData.coverTheme
+          coverTheme: storyData.coverTheme,
+          userId: user?.id ?? null
         });
       })
       .catch(reason => { if (active) { setNeedsAccess(reason?.response?.status === 403); setError(reason?.response?.data?.message || "Không mở được tập truyện."); } })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [storyId, chapterNumber]);
+  }, [storyId, chapterNumber, user?.id]);
 
   function changeSettings(next) {
     const value = { ...settings, ...next };

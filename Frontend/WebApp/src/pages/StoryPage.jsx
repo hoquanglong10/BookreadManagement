@@ -6,6 +6,7 @@ import { responseError } from "../api/http.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { loadStory } from "../services/catalogService.js";
 import { paymentService } from "../services/paymentService.js";
+import { getReadEpisodeNumbers, getReadingHistory } from "../services/readingHistory.js";
 import { displayStatus, formatDate } from "../utils/format.js";
 
 const money = value => `${Number(value || 0).toLocaleString("vi-VN")} ₫`;
@@ -45,6 +46,8 @@ export default function StoryPage() {
   const groups = useMemo(() => story ? chapterGroups(story) : [], [story]);
   const episodes = useMemo(() => groups.flatMap(group => group.episodes || []), [groups]);
   const firstReadable = episodes.find(episode => episode.hasContent !== false && episode.canRead !== false);
+  const localProgress = user ? null : getReadingHistory().find(entry => String(entry.storyId) === String(id));
+  const localReadNumbers = new Set(getReadEpisodeNumbers(id, user?.id));
 
   async function buyStory() {
     if (!user) { navigate("/account", { state: { from: `/story/${id}` } }); return; }
@@ -63,6 +66,10 @@ export default function StoryPage() {
   if (error) return <ErrorState message={error} />;
   if (!story) return null;
 
+  const lastReadEpisode = episodes.find(episode => Number(episode.number) === Number(story.lastReadNumber || localProgress?.chapterNumber));
+  const canContinue = Boolean(lastReadEpisode && lastReadEpisode.hasContent !== false && lastReadEpisode.canRead !== false);
+  const continueEpisode = canContinue ? lastReadEpisode : firstReadable;
+
   return <div className="story-detail-page">
     <nav className="breadcrumbs" aria-label="Đường dẫn"><Link to="/">Khám phá</Link><span aria-hidden="true">/</span><span>{story.genre || "Truyện"}</span><span aria-hidden="true">/</span><span className="breadcrumbs__current">{story.title}</span></nav>
     <section className="story-detail">
@@ -73,7 +80,7 @@ export default function StoryPage() {
         <p className="story-detail__author">Tác giả <strong>{story.author}</strong></p>
         <div className="story-detail__tags"><span>{displayStatus(story.status)}</span><span>{groups.length} chương · {episodes.length} tập</span><span>{story.accessType === "Free" ? "Miễn phí" : story.accessType === "Mixed" ? `Kết hợp · ${story.freeChapterCount} chương đầu miễn phí` : `Trả phí · ${money(story.price)}`}</span>{story.updatedAt && <span>Cập nhật {formatDate(story.updatedAt)}</span>}</div>
         <div className="story-detail__actions">
-          {firstReadable ? <Link className="button button--primary" to={`/read/${story.id}/${firstReadable.number}`}>Đọc từ đầu <span aria-hidden="true">→</span></Link> : <button className="button button--primary" type="button" disabled>Chưa có tập để đọc</button>}
+          {continueEpisode ? <Link className="button button--primary" to={`/read/${story.id}/${continueEpisode.number}`}>{canContinue ? "Đọc tiếp" : "Đọc từ đầu"} <span aria-hidden="true">→</span></Link> : <button className="button button--primary" type="button" disabled>Chưa có tập để đọc</button>}
           <a className="text-link" href="#chapter-list">Đến mục lục ↓</a>
         </div>
         {story.accessType !== "Free" && !story.hasPurchase && <div className="story-purchase-box">
@@ -94,11 +101,22 @@ export default function StoryPage() {
       <div className="section-heading"><div><p className="section-heading__overline">MỤC LỤC</p><h2>Chương & tập</h2></div><span className="section-heading__count">{groups.length} chương · {episodes.length} tập</span></div>
       {groups.length ? <div className="story-chapter-groups">{groups.map(group => <section className="story-chapter-group" key={group.id || group.number}>
         <div className="story-chapter-group__heading"><span>Chương {group.number}</span><h3>{group.title}</h3><small>{group.episodes?.length || 0} tập</small></div>
-        <ol className="chapter-list">{(group.episodes || []).map(episode => <li key={episode.id}>{episode.hasContent === false || episode.canRead === false ? <div className={`chapter-row chapter-row--empty${episode.canRead === false && episode.hasContent !== false ? " chapter-row--locked" : ""}`} aria-disabled="true">
-          <span className="chapter-row__number">Tập {episode.episodeNumber}</span><span className="chapter-row__title">{episode.title || `Tập ${episode.episodeNumber}`}</span>{episode.publishAt && <time className="chapter-row__date">{formatDate(episode.publishAt)}</time>}<span className="chapter-row__free">{episode.hasContent === false ? "Chưa có nội dung" : episode.accessLabel || "Trả phí"}</span>
-        </div> : <Link to={`/read/${story.id}/${episode.number}`} className="chapter-row">
-          <span className="chapter-row__number">Tập {episode.episodeNumber}</span><span className="chapter-row__title">{episode.title || `Tập ${episode.episodeNumber}`}</span>{episode.publishAt && <time className="chapter-row__date">{formatDate(episode.publishAt)}</time>}<span className="chapter-row__free">{episode.accessLabel || "Miễn phí"}</span><span className="chapter-row__arrow" aria-hidden="true">→</span>
-        </Link>}</li>)}</ol>
+        <ol className="chapter-list">{(group.episodes || []).map(episode => {
+          const isRead = Boolean(episode.isRead) || localReadNumbers.has(Number(episode.number)) || Number(localProgress?.chapterNumber) === Number(episode.number);
+          const rowContent = <>
+            <span className="chapter-row__number">Tập {episode.episodeNumber}</span>
+            <span className="chapter-row__title">{episode.title || `Tập ${episode.episodeNumber}`}</span>
+            {episode.publishAt && <time className="chapter-row__date">{formatDate(episode.publishAt)}</time>}
+            <span className="chapter-row__meta">
+              <span className={`chapter-row__read-status${isRead ? " chapter-row__read-status--read" : ""}`}>{isRead ? "Đã đọc" : "Chưa đọc"}</span>
+              <span className="chapter-row__free">{episode.hasContent === false ? "Chưa có nội dung" : episode.accessLabel || "Miễn phí"}</span>
+            </span>
+          </>;
+          return <li key={episode.id}>{episode.hasContent === false || episode.canRead === false
+            ? <div className={`chapter-row chapter-row--empty${episode.canRead === false && episode.hasContent !== false ? " chapter-row--locked" : ""}`} aria-disabled="true">{rowContent}</div>
+            : <Link to={`/read/${story.id}/${episode.number}`} className="chapter-row">{rowContent}<span className="chapter-row__arrow" aria-hidden="true">→</span></Link>}
+          </li>;
+        })}</ol>
       </section>)}</div> : <p className="quiet-note">Truyện chưa có chương nào được phát hành.</p>}
     </section>
   </div>;

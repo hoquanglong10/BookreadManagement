@@ -6,6 +6,7 @@ import StoryArtwork from "../components/StoryArtwork.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StatePanel.jsx";
 import { loadCatalog } from "../services/catalogService.js";
 import { getReadingHistory } from "../services/readingHistory.js";
+import { loadReadingProgress } from "../services/readingProgressService.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { displayStatus, formatDate } from "../utils/format.js";
 
@@ -128,10 +129,22 @@ export default function HomePage() {
   const [newestStories, setNewestStories] = useState([]);
   const [recentStories, setRecentStories] = useState([]);
   const [popularStories, setPopularStories] = useState([]);
-  const [history] = useState(getReadingHistory);
+  const [history, setHistory] = useState(getReadingHistory);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    if (!user) {
+      setHistory(getReadingHistory());
+      return () => { active = false; };
+    }
+    loadReadingProgress()
+      .then(progress => { if (active) setHistory(progress); })
+      .catch(() => { if (active) setHistory(getReadingHistory()); });
+    return () => { active = false; };
+  }, [user?.id]);
 
   useEffect(() => {
     let active = true;
