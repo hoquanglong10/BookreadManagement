@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.google.gson.Gson
 import java.time.Instant
+import java.util.UUID
 
 /**
  * Lưu phiên đăng nhập (PB02) và cài đặt đọc truyện vào SharedPreferences.
@@ -83,6 +84,19 @@ object SessionManager {
     fun isEpisodeRead(storyId: Int, episodeId: Int): Boolean {
         val identity = user?.id?.toString() ?: "guest"
         return prefs.getStringSet(KEY_READ_EPISODES, emptySet()).orEmpty().contains("$identity:$storyId:$episodeId")
+    }
+
+    fun paymentRequestId(scope: String): String {
+        val identity = user?.id?.toString() ?: "guest"
+        val key = "pending_payment:$identity:$scope"
+        val existing = prefs.getString(key, null)
+        if (existing != null) return existing
+        return UUID.randomUUID().toString().also { prefs.edit().putString(key, it).apply() }
+    }
+
+    fun completePaymentRequest(scope: String) {
+        val identity = user?.id?.toString() ?: "guest"
+        prefs.edit().remove("pending_payment:$identity:$scope").apply()
     }
 
     var readerFontSize: Int

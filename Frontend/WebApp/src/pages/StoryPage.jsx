@@ -53,10 +53,11 @@ export default function StoryPage() {
     if (!user) { navigate("/account", { state: { from: `/story/${id}` } }); return; }
     setPurchaseBusy(true); setPaymentError(""); setPaymentNotice("");
     try {
-      const result = await paymentService.purchaseStory(Number(id), simulateFailure);
+      const result = await paymentService.purchaseStory(Number(id), simulateFailure, user.id);
       if (result.status === "Success") {
         setPaymentNotice("Giao dịch thành công. Quyền đọc truyện đã được mở.");
-        const updated = await loadStory(id); setStory(updated);
+        try { setStory(await loadStory(id)); }
+        catch { setPaymentError("Giao dịch đã thành công, nhưng chưa tải lại được thông tin truyện. Tải lại trang để cập nhật quyền đọc."); }
       } else setPaymentError(result.failureReason || "Giao dịch thất bại; quyền đọc chưa được cấp.");
     } catch (reason) { setPaymentError(responseError(reason)); }
     finally { setPurchaseBusy(false); }

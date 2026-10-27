@@ -47,7 +47,6 @@ import com.huflit.quanlydoctruyen.ui.components.ErrorBox
 import com.huflit.quanlydoctruyen.ui.components.LoadingBox
 import com.huflit.quanlydoctruyen.ui.components.StatusBadge
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 // PB13: thông tin truyện + danh sách chương kèm trạng thái truy cập
 @OptIn(ExperimentalMaterial3Api::class)
@@ -130,7 +129,10 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
                         scope.launch {
                             purchaseBusy = true; paymentMessage = ""
                             try {
-                                val result = ApiClient.api.buyStory(story.id, PaymentRequest(UUID.randomUUID().toString(), simulateFailure))
+                                val requestScope = "story:${story.id}:$simulateFailure"
+                                val requestId = SessionManager.paymentRequestId(requestScope)
+                                val result = ApiClient.api.buyStory(story.id, PaymentRequest(requestId, simulateFailure))
+                                SessionManager.completePaymentRequest(requestScope)
                                 if (result.status == "Success") { paymentMessage = "Đã mở quyền đọc truyện."; onPurchaseSuccess() }
                                 else paymentMessage = result.failureReason ?: "Giao dịch thất bại, chưa cấp quyền."
                             } catch (cause: Exception) { paymentMessage = cause.toMessage() }

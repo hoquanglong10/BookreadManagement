@@ -78,6 +78,11 @@ public class SubscriptionPlansController(ApplicationDbContext context) : Control
 
     private async Task<string?> ValidateScopeAsync(UpsertSubscriptionPlanRequest request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length < 2)
+            return "Tên gói cần có ít nhất 2 ký tự không phải khoảng trắng.";
+
+        request.GenreIds ??= [];
+        request.StoryIds ??= [];
         var genreIds = request.GenreIds.Distinct().ToList();
         var storyIds = request.StoryIds.Distinct().ToList();
         if (request.AccessScope == "SelectedGenres")

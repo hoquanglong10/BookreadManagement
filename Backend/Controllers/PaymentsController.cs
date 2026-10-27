@@ -1,3 +1,4 @@
+using System.Data;
 using System.Security.Claims;
 using CustomerManagement.API.Data;
 using CustomerManagement.API.DTOs;
@@ -37,8 +38,12 @@ public class PaymentsController(ApplicationDbContext context) : ControllerBase
     {
         if (request.RequestId == Guid.Empty) return BadRequest(new { message = "Thiếu mã yêu cầu thanh toán." });
         var userId = CurrentUserId();
+        await using var dbTransaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
         var repeated = await FindRepeatedRequest(userId, request.RequestId, cancellationToken);
-        if (repeated is not null) return Ok(ToResult(repeated));
+        if (repeated is not null)
+            return MatchesCheckout(repeated, "Plan", planId, request.SimulateFailure)
+                ? Ok(ToResult(repeated))
+                : Conflict(new { message = "Mã yêu cầu này đã được dùng cho giao dịch khác. Hãy tạo yêu cầu mới." });
 
         var plan = await context.SubscriptionPlans.SingleOrDefaultAsync(item => item.Id == planId && item.IsAvailable, cancellationToken);
         if (plan is null) return NotFound(new { message = "Gói đọc không tồn tại hoặc đã ngừng bán." });
@@ -60,7 +65,22 @@ public class PaymentsController(ApplicationDbContext context) : ControllerBase
             transaction.EntitlementGranted = true;
         }
         context.PaymentTransactions.Add(transaction);
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+            await dbTransaction.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            await dbTransaction.RollbackAsync(cancellationToken);
+            context.ChangeTracker.Clear();
+            var committedRequest = await FindRepeatedRequest(userId, request.RequestId, cancellationToken);
+            if (committedRequest is not null)
+                return MatchesCheckout(committedRequest, "Plan", planId, request.SimulateFailure)
+                    ? Ok(ToResult(committedRequest))
+                    : Conflict(new { message = "Mã yêu cầu này đã được dùng cho giao dịch khác. Hãy tạo yêu cầu mới." });
+            throw;
+        }
         return Ok(ToResult(transaction));
     }
 
@@ -69,8 +89,12 @@ public class PaymentsController(ApplicationDbContext context) : ControllerBase
     {
         if (request.RequestId == Guid.Empty) return BadRequest(new { message = "Thiếu mã yêu cầu thanh toán." });
         var userId = CurrentUserId();
+        await using var dbTransaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
         var repeated = await FindRepeatedRequest(userId, request.RequestId, cancellationToken);
-        if (repeated is not null) return Ok(ToResult(repeated));
+        if (repeated is not null)
+            return MatchesCheckout(repeated, "Story", storyId, request.SimulateFailure)
+                ? Ok(ToResult(repeated))
+                : Conflict(new { message = "Mã yêu cầu này đã được dùng cho giao dịch khác. Hãy tạo yêu cầu mới." });
 
         var story = await context.Stories.SingleOrDefaultAsync(item => item.Id == storyId, cancellationToken);
         if (story is null) return NotFound(new { message = "Không tìm thấy truyện." });
@@ -87,12 +111,34 @@ public class PaymentsController(ApplicationDbContext context) : ControllerBase
             transaction.EntitlementGranted = true;
         }
         context.PaymentTransactions.Add(transaction);
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+            await dbTransaction.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            await dbTransaction.RollbackAsync(cancellationToken);
+            context.ChangeTracker.Clear();
+            var committedRequest = await FindRepeatedRequest(userId, request.RequestId, cancellationToken);
+            if (committedRequest is not null)
+                return MatchesCheckout(committedRequest, "Story", storyId, request.SimulateFailure)
+                    ? Ok(ToResult(committedRequest))
+                    : Conflict(new { message = "Mã yêu cầu này đã được dùng cho giao dịch khác. Hãy tạo yêu cầu mới." });
+            if (await context.StoryPurchases.AnyAsync(item => item.UserId == userId && item.StoryId == storyId, cancellationToken))
+                return Conflict(new { message = "Bạn đã sở hữu quyền đọc truyện này." });
+            throw;
+        }
         return Ok(ToResult(transaction));
     }
 
     private async Task<PaymentTransaction?> FindRepeatedRequest(int userId, Guid requestId, CancellationToken cancellationToken) =>
         await context.PaymentTransactions.AsNoTracking().SingleOrDefaultAsync(item => item.UserId == userId && item.IdempotencyKey == requestId, cancellationToken);
+
+    private static bool MatchesCheckout(PaymentTransaction transaction, string type, int targetId, bool simulateFailure) =>
+        transaction.Type == type
+        && (type == "Plan" ? transaction.PlanId == targetId : transaction.StoryId == targetId)
+        && (transaction.Status == "Failed") == simulateFailure;
 
     private static PaymentTransaction NewTransaction(int userId, Guid requestId, string type, decimal amount, DateTime now, bool failed) => new()
     {
@@ -147,6 +193,10 @@ public class AdminPaymentsController(ApplicationDbContext context) : ControllerB
     [HttpPost("{id:int}/reconcile")]
     public async Task<IActionResult> Reconcile(int id, ReconcilePaymentRequest request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.Note) || request.Note.Trim().Length < 8)
+            return BadRequest(new { message = "Ghi chú đối soát cần ít nhất 8 ký tự không phải khoảng trắng." });
+
+        await using var dbTransaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
         var transaction = await context.PaymentTransactions.SingleOrDefaultAsync(item => item.Id == id, cancellationToken);
         if (transaction is null) return NotFound(new { message = "Không tìm thấy giao dịch." });
         if (transaction.EntitlementGranted) return Ok(new { message = "Quyền đã được cấp trước đó.", transaction.Id, transaction.Status, transaction.EntitlementGranted });
@@ -176,6 +226,7 @@ public class AdminPaymentsController(ApplicationDbContext context) : ControllerB
         transaction.ReconciledByUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         transaction.ReconciliationNote = request.Note.Trim();
         await context.SaveChangesAsync(cancellationToken);
+        await dbTransaction.CommitAsync(cancellationToken);
         return Ok(new { message = "Đã ghi nhận đối soát và cấp quyền.", transaction.Id, transaction.Status, transaction.EntitlementGranted, transaction.ReconciledAt });
     }
 }

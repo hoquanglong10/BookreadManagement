@@ -27,7 +27,7 @@ export default function PlansPage() {
   async function subscribe(plan) {
     setBusyId(plan.id); setError(""); setNotice("");
     try {
-      const result = await paymentService.subscribe(plan.id, simulateFailure);
+      const result = await paymentService.subscribe(plan.id, simulateFailure, user.id);
       setNotice(result.status === "Success" ? `Đã kích hoạt ${plan.name}. Gói được gia hạn từ ngày hết hạn hiện tại nếu bạn đang còn hạn.` : "Giao dịch mô phỏng thất bại; gói đọc chưa được kích hoạt. Bạn có thể thử lại hoặc xem lịch sử.");
     } catch (reason) { setError(responseError(reason)); }
     finally { setBusyId(null); }

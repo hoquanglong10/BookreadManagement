@@ -35,7 +35,6 @@ import com.huflit.quanlydoctruyen.data.SubscriptionPlanDto
 import com.huflit.quanlydoctruyen.data.UpdateProfileRequest
 import com.huflit.quanlydoctruyen.data.toMessage
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,9 +117,12 @@ fun ProfileScreen(onBack: () -> Unit) {
                                 scope.launch {
                                     busy = true; error = ""; message = ""
                                     try {
-                                        val result = ApiClient.api.subscribe(plan.id, PaymentRequest(UUID.randomUUID().toString(), simulateFailure))
+                                        val requestScope = "plan:${plan.id}:$simulateFailure"
+                                        val requestId = SessionManager.paymentRequestId(requestScope)
+                                        val result = ApiClient.api.subscribe(plan.id, PaymentRequest(requestId, simulateFailure))
+                                        SessionManager.completePaymentRequest(requestScope)
                                         message = if (result.status == "Success") "Đã đăng ký/gia hạn ${plan.name}." else result.failureReason ?: "Giao dịch thất bại, chưa cấp quyền."
-                                        payments = ApiClient.api.paymentHistory()
+                                        runCatching { ApiClient.api.paymentHistory() }.onSuccess { payments = it }
                                     } catch (cause: Exception) { error = cause.toMessage() }
                                     finally { busy = false }
                                 }
