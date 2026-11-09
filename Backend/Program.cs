@@ -31,6 +31,21 @@ builder.Services.AddScoped<CustomerService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async validation =>
+            {
+                var idValue = validation.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(idValue, out var userId))
+                {
+                    validation.Fail("Invalid account token.");
+                    return;
+                }
+                var db = validation.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+                var isActive = await db.Users.AsNoTracking().AnyAsync(user => user.Id == userId && !user.IsLocked);
+                if (!isActive) validation.Fail("Account is locked or no longer available.");
+            }
+        };
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,

@@ -111,13 +111,26 @@ Các FR01–FR18 giữ nguyên mã trong phần Project Information của Produc
 ### FR11 — Tiến độ đọc
 
 - Hệ thống phải lưu truyện/chương/vị trí đọc gần nhất theo tài khoản và đồng bộ giữa Web, Android; người dùng có thể tiếp tục đọc và xem danh sách đang đọc.
-- **Trạng thái:** Chưa triển khai.
+- **Trạng thái:** Đã có tiến độ gần nhất theo truyện; Web có trang lịch sử/đọc tiếp và Android có kệ Đọc tiếp, dữ liệu tài khoản lấy chung từ API.
 
 ### FR12 — Theo dõi và thông báo
 
 - Thành viên phải theo dõi/bỏ theo dõi truyện và xem danh sách quan tâm.
 - Khi truyện được theo dõi phát hành chương mới, hệ thống phải tạo thông báo trong ứng dụng; thành viên có thể đánh dấu đã đọc.
-- **Trạng thái:** Chưa triển khai.
+- **Trạng thái:** Đã có theo dõi/bỏ theo dõi, thư viện truyện quan tâm và thông báo chương mới trong ứng dụng; Web/Android có thể đánh dấu đã đọc.
+
+### FR22 — Thảo luận và kiểm duyệt nội dung
+
+- Thành viên phải xem, đăng bình luận và trả lời bình luận theo Chương truyện; một Chương có thể gồm nhiều Tập.
+- Thành viên có thể báo cáo bình luận kèm lý do. Không cho phép tự báo cáo hoặc gửi lặp báo cáo đang chờ.
+- Admin phải xem báo cáo và bình luận, ẩn/hiện/gỡ nội dung, xử lý hoặc bỏ qua báo cáo.
+- **Trạng thái:** Đã có API, giao diện đọc Web/Android và công cụ kiểm duyệt Web. Bình luận đã gỡ giữ dấu vết để không làm đứt luồng trả lời/báo cáo.
+
+### FR23 — Quản lý và khóa tài khoản thành viên
+
+- Admin phải tìm/lọc danh sách User và xem trạng thái, gói đang hiệu lực, truyện đã mua.
+- Admin có thể khóa hoặc mở khóa tài khoản. Tài khoản bị khóa không đăng nhập, không dùng được phiên JWT còn hạn và không thể bình luận.
+- **Trạng thái:** Đã có API và trang Admin Web; JWT được kiểm tra trạng thái khóa tại mỗi yêu cầu có xác thực.
 
 ### FR13 — Thảo luận theo chương
 

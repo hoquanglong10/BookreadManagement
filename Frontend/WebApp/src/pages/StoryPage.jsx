@@ -8,6 +8,7 @@ import { loadStory } from "../services/catalogService.js";
 import { paymentService } from "../services/paymentService.js";
 import { getReadEpisodeNumbers, getReadingHistory } from "../services/readingHistory.js";
 import { displayStatus, formatDate } from "../utils/format.js";
+import { communityService } from "../services/communityService.js";
 
 const money = value => `${Number(value || 0).toLocaleString("vi-VN")} ₫`;
 
@@ -33,6 +34,9 @@ export default function StoryPage() {
   const [paymentNotice, setPaymentNotice] = useState("");
   const [purchaseBusy, setPurchaseBusy] = useState(false);
   const [simulateFailure, setSimulateFailure] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followBusy, setFollowBusy] = useState(false);
+  const [followError, setFollowError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -42,6 +46,15 @@ export default function StoryPage() {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [id]);
+
+  useEffect(() => {
+    let active = true;
+    if (!user) { setIsFollowing(false); return () => { active = false; }; }
+    communityService.getFollows().then(result => {
+      if (active) setIsFollowing((result.items || []).some(item => Number(item.storyId) === Number(id)));
+    }).catch(() => { if (active) setIsFollowing(false); });
+    return () => { active = false; };
+  }, [id, user?.id]);
 
   const groups = useMemo(() => story ? chapterGroups(story) : [], [story]);
   const episodes = useMemo(() => groups.flatMap(group => group.episodes || []), [groups]);
@@ -61,6 +74,17 @@ export default function StoryPage() {
       } else setPaymentError(result.failureReason || "Giao dịch thất bại; quyền đọc chưa được cấp.");
     } catch (reason) { setPaymentError(responseError(reason)); }
     finally { setPurchaseBusy(false); }
+  }
+
+  async function toggleFollow() {
+    if (!user) { navigate("/account", { state: { from: `/story/${id}` } }); return; }
+    setFollowBusy(true); setFollowError("");
+    try {
+      if (isFollowing) await communityService.unfollow(Number(id));
+      else await communityService.follow(Number(id));
+      setIsFollowing(value => !value);
+    } catch (reason) { setFollowError(responseError(reason)); }
+    finally { setFollowBusy(false); }
   }
 
   if (loading) return <LoadingState label="Đang mở trang truyện…" />;
@@ -97,6 +121,8 @@ export default function StoryPage() {
           <div className="story-detail__fact"><dt>Quyền đọc</dt><dd>{accessSummary}</dd></div>
           {story.updatedAt && <div className="story-detail__fact"><dt>Cập nhật</dt><dd>{formatDate(story.updatedAt)}</dd></div>}
         </dl>
+        <div className="story-detail__follow-action"><button className={`button ${isFollowing ? "button--outline" : "button--secondary"}`} type="button" disabled={followBusy} aria-pressed={isFollowing} onClick={toggleFollow}>{followBusy ? "Đang lưu…" : isFollowing ? "Đang theo dõi ✓" : "＋ Theo dõi"}</button></div>
+        {followError && <p className="form-message form-message--error" role="alert">{followError}</p>}
         <div className="story-detail__actions">
           {continueEpisode ? <Link className="button button--primary" to={`/read/${story.id}/${continueEpisode.number}`}>{canContinue ? "Đọc tiếp" : "Đọc từ đầu"} <span aria-hidden="true">→</span></Link> : <button className="button button--primary" type="button" disabled>Chưa có tập để đọc</button>}
           <a className="text-link" href="#chapter-list">Đến mục lục ↓</a>

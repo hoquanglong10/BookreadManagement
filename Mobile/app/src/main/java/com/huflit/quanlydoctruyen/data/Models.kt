@@ -115,11 +115,53 @@ data class ReadingProgressItem(
     val readAt: String
 )
 
+data class FollowedStoryResponse(val items: List<FollowedStoryItem> = emptyList())
+data class FollowedStoryItem(val storyId: Int, val createdAt: String, val story: FollowedStoryStory)
+data class FollowedStoryStory(
+    val id: Int,
+    val title: String,
+    val author: String,
+    val coverUrl: String? = null,
+    val coverTheme: String = "",
+    val status: String = "",
+    val genre: String = "",
+    val chapterCount: Int = 0
+)
+data class NotificationResponse(val items: List<ReaderNotificationItem> = emptyList(), val unreadCount: Int = 0)
+data class ReaderNotificationItem(
+    val id: Int,
+    val storyId: Int,
+    val storyTitle: String,
+    val chapterId: Int,
+    val chapterTitle: String,
+    val chapterNumber: Int,
+    val storyChapterNumber: Int,
+    val storyChapterTitle: String,
+    val createdAt: String,
+    val readAt: String? = null
+)
+data class ChapterCommentsResponse(val items: List<ChapterCommentDto> = emptyList())
+data class ChapterCommentDto(
+    val id: Int,
+    val parentCommentId: Int? = null,
+    val userId: Int,
+    val author: String,
+    val content: String,
+    val isHidden: Boolean = false,
+    val isDeleted: Boolean = false,
+    val createdAt: String,
+    val editedAt: String? = null,
+    val replyCount: Int = 0
+)
+data class CreateCommentRequest(val content: String, val parentCommentId: Int? = null)
+data class CreateCommentReportRequest(val reason: String)
+
 data class ChapterContent(
     val id: Int,
     val storyId: Int,
     val storyTitle: String,
     val number: Int,
+    val storyChapterId: Int = 0,
     val storyChapterNumber: Int = 0,
     val storyChapterTitle: String = "",
     val episodeNumber: Int = 1,

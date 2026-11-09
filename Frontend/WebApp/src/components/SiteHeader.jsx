@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getGenresRequest } from "../api/catalogApi.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { communityService } from "../services/communityService.js";
 
 const THEME_KEY = "bookread.theme";
 
@@ -12,6 +13,7 @@ export default function SiteHeader() {
   const [query, setQuery] = useState(new URLSearchParams(location.search).get("search") || "");
   const [genres, setGenres] = useState([]);
   const [genresOpen, setGenresOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [dark, setDark] = useState(() => {
     try { return window.localStorage.getItem(THEME_KEY) === "dark"; } catch { return false; }
   });
@@ -22,6 +24,12 @@ export default function SiteHeader() {
     getGenresRequest().then(items => { if (mounted && Array.isArray(items)) setGenres(items); }).catch(() => {});
     return () => { mounted = false; };
   }, []);
+  useEffect(() => {
+    let mounted = true;
+    if (!user) { setUnreadCount(0); return () => { mounted = false; }; }
+    communityService.getNotifications(true).then(result => { if (mounted) setUnreadCount(result.unreadCount || 0); }).catch(() => {});
+    return () => { mounted = false; };
+  }, [user?.id, location.pathname]);
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     try { window.localStorage.setItem(THEME_KEY, dark ? "dark" : "light"); } catch { /* Theme preference is optional. */ }
@@ -66,6 +74,7 @@ export default function SiteHeader() {
         </span>
       </button>
       <div className="site-account">
+        {user && <Link className="site-profile-link site-library-link" to="/library">Thư viện{unreadCount > 0 && <span aria-label={`${unreadCount} thông báo chưa đọc`}>{unreadCount > 99 ? "99+" : unreadCount}</span>}</Link>}
         <Link className="site-account__plans" to="/plans">Gói đọc</Link>
         {user?.role === "Admin" && <Link className="site-account__admin" to="/admin">Quản trị</Link>}
         {user ? <><Link className="site-profile-link" to="/payments">Giao dịch</Link><Link className="site-profile-link" to="/profile">{user.displayName || user.username}</Link><button className="site-login-pill" type="button" onClick={handleSignOut}><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4" /><path d="M4.8 20c.7-4 3.1-6 7.2-6s6.5 2 7.2 6" /></svg> Đăng xuất</button></> : <Link className="site-login-pill" to="/account"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4" /><path d="M4.8 20c.7-4 3.1-6 7.2-6" /></svg> Đăng nhập</Link>}

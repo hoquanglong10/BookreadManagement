@@ -75,6 +75,101 @@ namespace CustomerManagement.API.Migrations
                     b.ToTable("Chapters");
                 });
 
+            modelBuilder.Entity("CustomerManagement.API.Models.ChapterComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsHidden")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ParentCommentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoryChapterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentCommentId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("StoryChapterId", "ParentCommentId", "CreatedAt");
+
+                    b.ToTable("ChapterComments");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.CommentReport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("CommentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ReporterId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ResolvedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReporterId");
+
+                    b.HasIndex("ResolvedByUserId");
+
+                    b.HasIndex("Status", "CreatedAt");
+
+                    b.HasIndex("CommentId", "ReporterId", "Status");
+
+                    b.ToTable("CommentReports");
+                });
+
             modelBuilder.Entity("CustomerManagement.API.Models.Customer", b =>
                 {
                     b.Property<int>("Id")
@@ -105,6 +200,35 @@ namespace CustomerManagement.API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.FollowedStory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoryId");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "StoryId")
+                        .IsUnique();
+
+                    b.ToTable("FollowedStories");
                 });
 
             modelBuilder.Entity("CustomerManagement.API.Models.Genre", b =>
@@ -238,6 +362,43 @@ namespace CustomerManagement.API.Migrations
                     b.HasIndex("StoryId", "ChapterId", "ViewedAt");
 
                     b.ToTable("ReadEvents");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.ReaderNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChapterId");
+
+                    b.HasIndex("StoryId");
+
+                    b.HasIndex("UserId", "ChapterId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ReadAt", "CreatedAt");
+
+                    b.ToTable("ReaderNotifications");
                 });
 
             modelBuilder.Entity("CustomerManagement.API.Models.Story", b =>
@@ -560,6 +721,77 @@ namespace CustomerManagement.API.Migrations
                     b.Navigation("StoryChapter");
                 });
 
+            modelBuilder.Entity("CustomerManagement.API.Models.ChapterComment", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.ChapterComment", "ParentComment")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentCommentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CustomerManagement.API.Models.StoryChapter", "StoryChapter")
+                        .WithMany("Comments")
+                        .HasForeignKey("StoryChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ParentComment");
+
+                    b.Navigation("StoryChapter");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.CommentReport", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.ChapterComment", "Comment")
+                        .WithMany("Reports")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.User", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.User", "ResolvedByUser")
+                        .WithMany()
+                        .HasForeignKey("ResolvedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Comment");
+
+                    b.Navigation("Reporter");
+
+                    b.Navigation("ResolvedByUser");
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.FollowedStory", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.Story", "Story")
+                        .WithMany()
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Story");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CustomerManagement.API.Models.PaymentTransaction", b =>
                 {
                     b.HasOne("CustomerManagement.API.Models.SubscriptionPlan", "Plan")
@@ -605,6 +837,33 @@ namespace CustomerManagement.API.Migrations
                         .HasForeignKey("StoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("CustomerManagement.API.Models.ReaderNotification", b =>
+                {
+                    b.HasOne("CustomerManagement.API.Models.Chapter", "Chapter")
+                        .WithMany()
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.Story", "Story")
+                        .WithMany()
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CustomerManagement.API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Chapter");
+
+                    b.Navigation("Story");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CustomerManagement.API.Models.StoryChapter", b =>
@@ -713,6 +972,13 @@ namespace CustomerManagement.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CustomerManagement.API.Models.ChapterComment", b =>
+                {
+                    b.Navigation("Replies");
+
+                    b.Navigation("Reports");
+                });
+
             modelBuilder.Entity("CustomerManagement.API.Models.Genre", b =>
                 {
                     b.Navigation("StoryGenres");
@@ -731,6 +997,8 @@ namespace CustomerManagement.API.Migrations
 
             modelBuilder.Entity("CustomerManagement.API.Models.StoryChapter", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("Episodes");
                 });
 

@@ -9,6 +9,8 @@ import AdminStoriesPage from "./pages/AdminStoriesPage.jsx";
 import AdminPlansPage from "./pages/AdminPlansPage.jsx";
 import AdminReadEventsPage from "./pages/AdminReadEventsPage.jsx";
 import AdminPaymentsPage from "./pages/AdminPaymentsPage.jsx";
+import AdminUsersPage from "./pages/AdminUsersPage.jsx";
+import AdminCommunityPage from "./pages/AdminCommunityPage.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import HomePage from "./pages/HomePage.jsx";
@@ -16,6 +18,7 @@ import NotFoundPage from "./pages/NotFoundPage.jsx";
 import ReaderPage from "./pages/ReaderPage.jsx";
 import ReadingHistoryPage from "./pages/ReadingHistoryPage.jsx";
 import PaymentHistoryPage from "./pages/PaymentHistoryPage.jsx";
+import LibraryPage from "./pages/LibraryPage.jsx";
 import PlansPage from "./pages/PlansPage.jsx";
 import StoryPage from "./pages/StoryPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -42,6 +45,7 @@ function AppRoutes() {
       <Route element={<PublicLayout />}>
         <Route index element={<HomePage />} />
         <Route path="history" element={<ReadingHistoryPage />} />
+        <Route path="library" element={<ProtectedRoute><LibraryPage /></ProtectedRoute>} />
         <Route path="story/:id" element={<StoryPage />} />
         <Route path="account" element={<AuthPage />} />
         <Route path="profile" element={<ProfilePage />} />
@@ -57,6 +61,8 @@ function AppRoutes() {
         <Route path="plans" element={<AdminPlansPage />} />
         <Route path="read-events" element={<AdminReadEventsPage />} />
         <Route path="payments" element={<AdminPaymentsPage />} />
+        <Route path="community" element={<AdminCommunityPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
       </Route>
       <Route path="404" element={<NotFoundPage />} />
       <Route path="*" element={<NotFoundPage />} />

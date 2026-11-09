@@ -63,4 +63,6 @@ Mở thư mục `Mobile` bằng Android Studio, cài Android SDK 37 nếu IDE y�
 - Admin quản lý truyện, nhiều thể loại, ảnh bìa, chương/lịch phát hành, tài khoản và gói đọc.
 - Quyền đọc hỗ trợ truyện miễn phí, trả phí, kết hợp; API ghi sự kiện đọc và Admin xem báo cáo theo ngày.
 - Hồ sơ độc giả hỗ trợ tên hiển thị, avatar URL và đổi mật khẩu.
-- Android: đăng ký/đăng nhập, khám phá/tìm truyện, các danh sách đề xuất, chi tiết/quyền chương, đọc chương và hồ sơ.
+- Thành viên theo dõi truyện, nhận thông báo chương mới, xem thư viện cá nhân, thảo luận và báo cáo bình luận theo Chương truyện.
+- Admin kiểm duyệt bình luận/báo cáo; xem gói và truyện đã mua của User, khóa/mở tài khoản. Tài khoản bị khóa mất hiệu lực JWT ngay khi gọi API.
+- Android: đăng ký/đăng nhập, khám phá/tìm truyện, các danh sách đề xuất, theo dõi, thông báo, thảo luận, chi tiết/quyền chương, đọc chương và hồ sơ.

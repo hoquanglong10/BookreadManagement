@@ -44,7 +44,7 @@ import com.huflit.quanlydoctruyen.ui.components.LoadingBox
 // PB14: đọc chương, chuyển chương, chỉnh cỡ chữ, chế độ tối
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: () -> Unit, onPlans: () -> Unit) {
+fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: () -> Unit, onPlans: () -> Unit, onLogin: () -> Unit) {
     var retry by remember { mutableIntStateOf(0) }
     val state by produceState<UiState<ChapterContent>>(UiState.Loading, storyId, number, retry) {
         value = UiState.Loading
@@ -105,6 +105,7 @@ fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: 
                         }
 
                         ChapterNav(c, onGoTo)
+                        ChapterDiscussion(c.storyChapterId, onLogin)
 
                         c.content.split(Regex("\n+")).filter { it.isNotBlank() }.forEach { paragraph ->
                             Text(

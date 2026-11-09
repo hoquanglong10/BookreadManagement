@@ -1,6 +1,6 @@
 # SRS — Ma trận truy vết Product Backlog
 
-Trạng thái dưới đây được suy ra từ mã nguồn và xác minh môi trường local ngày 2026-10-27. Backend Release, Web production build, Android assembleDebug và migrations đã chạy thành công. Đã smoke test các luồng thanh toán mô phỏng, thất bại, gia hạn, đối soát và lịch sử bằng tài khoản tạm rồi xóa dữ liệu kiểm thử. Chưa có bộ kiểm thử tự động tích hợp trong repository.
+Trạng thái dưới đây được rà soát theo mã nguồn ngày 2026-11-09. Web production build, Backend build và Android Kotlin compilation thành công. EF migration Sprint 4 đã tạo; chưa áp dụng lên SQL Server từ môi trường này vì máy chạy kiểm tra không hỗ trợ chế độ mã hóa TLS mà SQL Server yêu cầu. Các luồng Sprint 4 chưa được smoke test end-to-end; repository chưa có bộ kiểm thử tích hợp tự động.
 
 | Story | Yêu cầu | Trạng thái | Căn cứ / phần còn thiếu |
 |---|---|---|---|
@@ -30,14 +30,14 @@ Trạng thái dưới đây được suy ra từ mã nguồn và xác minh môi 
 | PB24 | Đối soát và cấp quyền bù | Đã triển khai | Admin xem giao dịch, ghi chú xác minh và cấp quyền bù; lưu Admin/thời điểm, thao tác lặp không cấp trùng. |
 | PB25 | Lịch sử thanh toán/gói/truyện mua | Đã triển khai | Thành viên xem lịch sử riêng trên Web và Android; Admin lọc danh sách giao dịch. |
 | PB26 | Tiến độ đọc đồng bộ | Đã triển khai | Lượt đọc tập đã đăng nhập được lưu trong ReadEvents; API trả tập đã đọc, tập gần nhất; Web và Android đồng bộ để tiếp tục trên thiết bị khác. |
-| PB27 | Danh sách truyện đang đọc | Chưa triển khai | Chưa có tiến độ đọc để tổng hợp. |
-| PB28 | Theo dõi truyện | Chưa triển khai | Chưa có quan hệ theo dõi. |
-| PB29 | Thông báo chương mới | Chưa triển khai | Chưa có thông báo. |
-| PB30 | Thảo luận theo chương | Chưa triển khai | Chưa có bình luận/thảo luận. |
-| PB31 | Báo cáo vi phạm | Chưa triển khai | Chưa có báo cáo nội dung. |
-| PB32 | Kiểm duyệt thảo luận | Chưa triển khai | Chưa có công cụ kiểm duyệt. |
-| PB33 | Quản lý tài khoản/thông tin dịch vụ | Một phần | Có CRUD Customer độc lập; chưa có trang/API quản lý User cùng gói/truyện đã mua. |
-| PB34 | Khóa tài khoản thành viên | Một phần | User.IsLocked được kiểm tra khi đăng nhập; chưa có API/UI Admin để khóa/mở tài khoản User. |
+| PB27 | Danh sách truyện đang đọc | Đã triển khai | Web có trang lịch sử/tiếp tục đọc; Mobile có kệ Đọc tiếp; API trả tiến độ gần nhất theo từng truyện. |
+| PB28 | Theo dõi truyện | Đã triển khai | Thành viên theo dõi/bỏ theo dõi ở trang truyện, xem danh sách trên Web và Mobile; ràng buộc duy nhất theo tài khoản/truyện. |
+| PB29 | Thông báo chương mới | Đã triển khai | API tạo thông báo khi thành viên tải danh sách thông báo; Web/Mobile xem thông báo và đánh dấu từng mục hoặc tất cả đã đọc. |
+| PB30 | Thảo luận theo chương | Đã triển khai | Bình luận và trả lời một cấp gắn với Chương truyện (không tách theo Tập); hiển thị tại trang đọc Web/Mobile. |
+| PB31 | Báo cáo vi phạm | Đã triển khai | Thành viên gửi lý do báo cáo bình luận, không thể tự báo cáo hoặc gửi trùng báo cáo đang chờ cho cùng nội dung. |
+| PB32 | Kiểm duyệt thảo luận | Đã triển khai | Admin lọc báo cáo/bình luận, ẩn/hiện/gỡ bình luận, xử lý hoặc bỏ qua báo cáo; lưu người xử lý và thời điểm. |
+| PB33 | Quản lý tài khoản/thông tin dịch vụ | Đã triển khai | Trang/API Admin tìm và lọc User, xem gói còn hiệu lực và truyện đã mua; dữ liệu Customer cũ vẫn độc lập. |
+| PB34 | Khóa tài khoản thành viên | Đã triển khai | Admin khóa/mở User; đăng nhập và JWT đang hoạt động bị từ chối ngay khi tài khoản bị khóa, không thể đăng bình luận. |
 | PB35 | Thống kê hoạt động thành viên/giao dịch | Chưa triển khai | Chưa có gói/giao dịch hoặc dashboard thống kê. |
 | PB36 | Thống kê doanh thu | Chưa triển khai | Chưa có dữ liệu doanh thu. |
 | PB37 | Thống kê nội dung | Một phần | Có lượt đọc tổng và báo cáo lượt đọc theo chương/thời gian; chưa thống kê theo theo dõi, mua hoặc thể loại quan tâm. |

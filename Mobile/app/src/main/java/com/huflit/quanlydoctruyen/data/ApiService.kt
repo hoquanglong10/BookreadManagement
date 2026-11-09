@@ -9,6 +9,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.DELETE
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.PUT
@@ -55,6 +56,35 @@ interface ApiService {
 
     @GET("api/reading-progress")
     suspend fun readingProgress(): ReadingProgressResponse
+
+    // PB28, PB29
+    @GET("api/follows")
+    suspend fun followedStories(): FollowedStoryResponse
+
+    @POST("api/follows/{storyId}")
+    suspend fun followStory(@Path("storyId") storyId: Int)
+
+    @DELETE("api/follows/{storyId}")
+    suspend fun unfollowStory(@Path("storyId") storyId: Int)
+
+    @GET("api/notifications")
+    suspend fun notifications(@Query("unreadOnly") unreadOnly: Boolean = false): NotificationResponse
+
+    @PUT("api/notifications/{id}/read")
+    suspend fun markNotificationRead(@Path("id") id: Int)
+
+    @PUT("api/notifications/read-all")
+    suspend fun markAllNotificationsRead()
+
+    // PB30, PB31
+    @GET("api/story-chapters/{chapterId}/comments")
+    suspend fun chapterComments(@Path("chapterId") chapterId: Int): ChapterCommentsResponse
+
+    @POST("api/story-chapters/{chapterId}/comments")
+    suspend fun createChapterComment(@Path("chapterId") chapterId: Int, @Body body: CreateCommentRequest): ChapterCommentDto
+
+    @POST("api/comments/{commentId}/reports")
+    suspend fun reportComment(@Path("commentId") commentId: Int, @Body body: CreateCommentReportRequest)
 
     @GET("api/plans/available")
     suspend fun availablePlans(): List<SubscriptionPlanDto>

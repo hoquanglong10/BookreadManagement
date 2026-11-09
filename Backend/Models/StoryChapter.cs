@@ -9,4 +9,5 @@ public class StoryChapter
     public int Number { get; set; }
     public string Title { get; set; } = string.Empty;
     public List<Chapter> Episodes { get; set; } = [];
+    public List<ChapterComment> Comments { get; set; } = [];
 }

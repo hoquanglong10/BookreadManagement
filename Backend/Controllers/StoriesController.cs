@@ -258,6 +258,7 @@ public class StoriesController(ApplicationDbContext context, IWebHostEnvironment
             chapter.StoryId,
             StoryTitle = chapter.Story.Title,
             chapter.Number,
+            StoryChapterId = chapter.StoryChapterId,
             StoryChapterNumber = chapter.StoryChapter.Number,
             StoryChapterTitle = chapter.StoryChapter.Title,
             chapter.EpisodeNumber,
@@ -309,6 +310,7 @@ public class StoriesController(ApplicationDbContext context, IWebHostEnvironment
             || await context.SubscriptionPlanStories.AnyAsync(item => item.StoryId == id, cancellationToken)
             || await context.ReadEvents.AnyAsync(item => item.StoryId == id, cancellationToken))
             return Conflict(new { message = "Truyện đã có lượt đọc hoặc gắn với quyền mua/gói đọc nên không thể xóa. Hãy chuyển truyện sang trạng thái phù hợp." });
+        await context.ReaderNotifications.Where(item => item.StoryId == id).ExecuteDeleteAsync(cancellationToken);
         context.Stories.Remove(story);
         await context.SaveChangesAsync(cancellationToken);
         return NoContent();
@@ -422,6 +424,7 @@ public class StoriesController(ApplicationDbContext context, IWebHostEnvironment
         if (await context.ReadEvents.AnyAsync(item => item.ChapterId == chapterId, cancellationToken))
             return Conflict(new { message = "Chương đã có lượt đọc nên không thể xóa để giữ nguyên thống kê." });
         chapter.Story.UpdatedAt = DateTime.UtcNow;
+        await context.ReaderNotifications.Where(item => item.ChapterId == chapterId).ExecuteDeleteAsync(cancellationToken);
         context.Chapters.Remove(chapter);
         await context.SaveChangesAsync(cancellationToken);
         return NoContent();

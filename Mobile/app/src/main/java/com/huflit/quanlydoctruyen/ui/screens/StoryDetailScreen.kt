@@ -16,11 +16,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -84,7 +86,16 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
     var purchaseBusy by remember(story.id) { mutableStateOf(false) }
     var paymentMessage by remember(story.id) { mutableStateOf("") }
     var simulateFailure by remember(story.id) { mutableStateOf(false) }
+    var isFollowing by remember(story.id, SessionManager.user?.id) { mutableStateOf(false) }
+    var followBusy by remember(story.id) { mutableStateOf(false) }
+    var followMessage by remember(story.id) { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(story.id, SessionManager.user?.id) {
+        isFollowing = if (SessionManager.user == null) false else runCatching {
+            ApiClient.api.followedStories().items.any { it.storyId == story.id }
+        }.getOrDefault(false)
+    }
 
     LazyColumn(modifier.fillMaxSize()) {
         item {
@@ -120,6 +131,21 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
                         Text(if (lastReadEpisode != null) "Đọc tiếp" else "Đọc từ đầu")
                     }
                 }
+                OutlinedButton(enabled = !followBusy, onClick = {
+                    if (SessionManager.user == null) { onLogin(); return@OutlinedButton }
+                    scope.launch {
+                        followBusy = true
+                        try {
+                            if (isFollowing) ApiClient.api.unfollowStory(story.id) else ApiClient.api.followStory(story.id)
+                            isFollowing = !isFollowing
+                            followMessage = if (isFollowing) "Đã thêm vào thư viện theo dõi." else "Đã bỏ theo dõi truyện."
+                        } catch (cause: Exception) { followMessage = cause.toMessage() }
+                        finally { followBusy = false }
+                    }
+                }, modifier = Modifier.fillMaxWidth()) {
+                    Text(if (followBusy) "Đang lưu…" else if (isFollowing) "Đang theo dõi ✓" else "＋ Theo dõi truyện")
+                }
+                if (followMessage.isNotBlank()) Text(followMessage, color = MaterialTheme.colorScheme.primary)
                 if (!story.description.isNullOrBlank()) {
                     Text(story.description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 12.dp))
                 }

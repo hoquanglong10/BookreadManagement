@@ -73,7 +73,7 @@ private data class HomeCatalogResults(
 // PB11: tìm kiếm truyện, PB12: các danh sách gợi ý
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () -> Unit) {
+fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () -> Unit, onLibrary: () -> Unit) {
     var input by rememberSaveable { mutableStateOf("") }
     var keyword by rememberSaveable { mutableStateOf("") }
     var sort by rememberSaveable { mutableStateOf("updated") }
@@ -158,6 +158,7 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () ->
                 title = { Text("Đọc Truyện", fontWeight = FontWeight.Bold) },
                 actions = {
                     if (user != null) {
+                        TextButton(onClick = onLibrary) { Text("Thư viện") }
                         TextButton(onClick = onProfile) { Text(user.displayName.ifBlank { user.username }) }
                         TextButton(onClick = onProfile) { Text("Hồ sơ") }
                         TextButton(onClick = { SessionManager.logout() }) { Text("Đăng xuất") }

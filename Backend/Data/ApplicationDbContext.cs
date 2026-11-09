@@ -19,6 +19,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<StoryPurchase> StoryPurchases => Set<StoryPurchase>();
     public DbSet<ReadEvent> ReadEvents => Set<ReadEvent>();
     public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
+    public DbSet<FollowedStory> FollowedStories => Set<FollowedStory>();
+    public DbSet<ReaderNotification> ReaderNotifications => Set<ReaderNotification>();
+    public DbSet<ChapterComment> ChapterComments => Set<ChapterComment>();
+    public DbSet<CommentReport> CommentReports => Set<CommentReport>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -128,6 +132,41 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             transaction.HasOne(item => item.Plan).WithMany().HasForeignKey(item => item.PlanId).OnDelete(DeleteBehavior.Restrict);
             transaction.HasOne(item => item.Story).WithMany().HasForeignKey(item => item.StoryId).OnDelete(DeleteBehavior.Restrict);
             transaction.HasOne(item => item.ReconciledByUser).WithMany().HasForeignKey(item => item.ReconciledByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<FollowedStory>(follow =>
+        {
+            follow.HasIndex(item => new { item.UserId, item.StoryId }).IsUnique();
+            follow.HasIndex(item => new { item.UserId, item.CreatedAt });
+            follow.HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Cascade);
+            follow.HasOne(item => item.Story).WithMany().HasForeignKey(item => item.StoryId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<ReaderNotification>(notification =>
+        {
+            notification.HasIndex(item => new { item.UserId, item.ChapterId }).IsUnique();
+            notification.HasIndex(item => new { item.UserId, item.ReadAt, item.CreatedAt });
+            notification.HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Cascade);
+            notification.HasOne(item => item.Story).WithMany().HasForeignKey(item => item.StoryId).OnDelete(DeleteBehavior.Restrict);
+            notification.HasOne(item => item.Chapter).WithMany().HasForeignKey(item => item.ChapterId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<ChapterComment>(comment =>
+        {
+            comment.Property(item => item.Content).HasMaxLength(2000).IsRequired();
+            comment.HasIndex(item => new { item.StoryChapterId, item.ParentCommentId, item.CreatedAt });
+            comment.HasOne(item => item.StoryChapter).WithMany(chapter => chapter.Comments).HasForeignKey(item => item.StoryChapterId).OnDelete(DeleteBehavior.Cascade);
+            comment.HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Restrict);
+            comment.HasOne(item => item.ParentComment).WithMany(item => item.Replies).HasForeignKey(item => item.ParentCommentId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<CommentReport>(report =>
+        {
+            report.Property(item => item.Reason).HasMaxLength(500).IsRequired();
+            report.Property(item => item.Status).HasMaxLength(20).IsRequired();
+            report.Property(item => item.AdminNote).HasMaxLength(500);
+            report.HasIndex(item => new { item.CommentId, item.ReporterId, item.Status });
+            report.HasIndex(item => new { item.Status, item.CreatedAt });
+            report.HasOne(item => item.Comment).WithMany(comment => comment.Reports).HasForeignKey(item => item.CommentId).OnDelete(DeleteBehavior.Cascade);
+            report.HasOne(item => item.Reporter).WithMany().HasForeignKey(item => item.ReporterId).OnDelete(DeleteBehavior.Restrict);
+            report.HasOne(item => item.ResolvedByUser).WithMany().HasForeignKey(item => item.ResolvedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

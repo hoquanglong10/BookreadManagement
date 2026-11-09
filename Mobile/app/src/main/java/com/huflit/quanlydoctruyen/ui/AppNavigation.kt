@@ -12,6 +12,7 @@ import com.huflit.quanlydoctruyen.ui.screens.ReadChapterScreen
 import com.huflit.quanlydoctruyen.ui.screens.ProfileScreen
 import com.huflit.quanlydoctruyen.ui.screens.RegisterScreen
 import com.huflit.quanlydoctruyen.ui.screens.StoryDetailScreen
+import com.huflit.quanlydoctruyen.ui.screens.LibraryScreen
 
 private const val READ_ROUTE = "story/{id}/chapter/{number}"
 
@@ -24,7 +25,16 @@ fun AppNavigation() {
             HomeScreen(
                 onOpenStory = { id -> nav.navigate("story/$id") },
                 onLogin = { nav.navigate("login") },
-                onProfile = { nav.navigate("profile") }
+                onProfile = { nav.navigate("profile") },
+                onLibrary = { nav.navigate("library") }
+            )
+        }
+
+        composable("library") {
+            LibraryScreen(
+                onOpenStory = { id -> nav.navigate("story/$id") },
+                onRead = { id, number -> nav.navigate("story/$id/chapter/$number") },
+                onBack = { nav.popBackStack() }
             )
         }
 
@@ -57,7 +67,8 @@ fun AppNavigation() {
                     }
                 },
                 onBack = { nav.popBackStack() },
-                onPlans = { nav.navigate("profile") }
+                onPlans = { nav.navigate("profile") },
+                onLogin = { nav.navigate("login") }
             )
         }
 

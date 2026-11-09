@@ -4,6 +4,7 @@ import { ErrorState, LoadingState } from "../components/StatePanel.jsx";
 import { loadChapter, loadStory } from "../services/catalogService.js";
 import { saveReadingProgress } from "../services/readingHistory.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import ChapterDiscussion from "../components/ChapterDiscussion.jsx";
 
 const SETTINGS_KEY = "bookread.reader.settings";
 
@@ -64,6 +65,11 @@ export default function ReaderPage() {
   if (loading) return <div className="reader-state"><LoadingState label="Đang mở tập…" /></div>;
   if (error) return <div className="reader-state"><div><ErrorState message={error} />{needsAccess && <div className="reader-paywall"><p>Chọn gói đọc phù hợp để mở khóa nội dung này.</p><Link className="button button--primary" to="/plans">Xem gói đọc</Link><Link className="text-link" to={`/story/${storyId}`}>Quay lại truyện</Link></div>}</div></div>;
 
+  // Some already-running API builds do not yet include StoryChapterId in the
+  // reader payload. The story catalog endpoint does include it on each episode.
+  const storyChapterId = chapter?.storyChapterId
+    ?? story?.chapters?.find(item => item.id === chapter?.id)?.storyChapterId;
+
   return <div className={`reader-page${settings.dark ? " reader-page--dark" : ""}`}>
     <header className="reader-topbar"><Link to={`/story/${storyId}`} className="reader-back"><span aria-hidden="true">←</span> Thông tin truyện</Link><div className="reader-topbar__title"><strong>{story?.title || chapter?.storyTitle}</strong><span>Chương {chapter?.storyChapterNumber || chapter?.number}{chapter?.storyChapterTitle ? `: ${chapter.storyChapterTitle}` : ""} · Tập {chapter?.episodeNumber || 1}: {chapter?.title}</span></div><Link to="/" className="reader-home">Thư viện</Link></header>
     <div className="reader-controls" aria-label="Tùy chỉnh cách đọc"><span>Hiển thị</span><button type="button" onClick={() => changeSettings({ size: Math.max(16, settings.size - 1) })} aria-label="Giảm cỡ chữ" disabled={settings.size <= 16}>A−</button><output aria-live="polite">{settings.size}px</output><button type="button" onClick={() => changeSettings({ size: Math.min(30, settings.size + 1) })} aria-label="Tăng cỡ chữ" disabled={settings.size >= 30}>A+</button><span className="reader-controls__divider" /><button type="button" className="reader-theme-toggle" onClick={() => changeSettings({ dark: !settings.dark })}>{settings.dark ? "Giao diện sáng" : "Giao diện tối"}</button></div>
@@ -75,6 +81,11 @@ export default function ReaderPage() {
         <Link className="reader-pagination__contents" to={`/story/${storyId}#chapter-list`}>Danh sách chương</Link>
         {chapter?.nextNumber ? <Link className="button button--primary" to={`/read/${storyId}/${chapter.nextNumber}`}>Tập tiếp →</Link> : <span className="reader-pagination__end">Bạn đã đọc tập mới nhất</span>}
       </nav>
+      <ChapterDiscussion
+        storyChapterId={storyChapterId}
+        chapterTitle={chapter?.storyChapterTitle}
+        chapterNumber={chapter?.storyChapterNumber}
+      />
     </main>
   </div>;
 }
