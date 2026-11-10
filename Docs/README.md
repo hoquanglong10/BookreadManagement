@@ -8,6 +8,7 @@ Thư mục này chứa đặc tả yêu cầu và tài liệu lập kế hoạch
 - [Yêu cầu chức năng](SRS-Functional-Requirements.md): đặc tả FR, luồng sử dụng, quy tắc nghiệp vụ và tiêu chí chấp nhận.
 - [Dữ liệu và giao diện](SRS-Data-and-Interfaces.md): mô hình dữ liệu hiện tại, API, giao diện giữa Web/Mobile và Backend.
 - [Ma trận truy vết](SRS-Traceability.md): đối chiếu PB01–PB42 với chức năng trong mã nguồn hiện tại.
+- [API Sprint 5](API-Reference-Sprint5.md): báo cáo Admin, đồng bộ tiến độ offline và cách kiểm tra tích hợp.
 
 ## Tài liệu nguồn
 

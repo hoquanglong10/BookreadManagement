@@ -1,6 +1,6 @@
 # SRS — Ma trận truy vết Product Backlog
 
-Trạng thái dưới đây được rà soát theo mã nguồn ngày 2026-11-09. Web production build, Backend build và Android Kotlin compilation thành công. EF migration Sprint 4 đã tạo; chưa áp dụng lên SQL Server từ môi trường này vì máy chạy kiểm tra không hỗ trợ chế độ mã hóa TLS mà SQL Server yêu cầu. Các luồng Sprint 4 chưa được smoke test end-to-end; repository chưa có bộ kiểm thử tích hợp tự động.
+Trạng thái dưới đây được rà soát ngày 2026-11-10. Web production build, Backend build, Android debug build và test hợp đồng Android đều thành công. Sau khi áp dụng migration Sprint 5 trên database phát triển, `GET /api/stories/1/chapters/1` trả HTTP 200. Script API integration đã được thêm nhưng chưa chạy vì phiên kiểm tra không có thông tin tài khoản Admin.
 
 | Story | Yêu cầu | Trạng thái | Căn cứ / phần còn thiếu |
 |---|---|---|---|
@@ -38,20 +38,21 @@ Trạng thái dưới đây được rà soát theo mã nguồn ngày 2026-11-09
 | PB32 | Kiểm duyệt thảo luận | Đã triển khai | Admin lọc báo cáo/bình luận, ẩn/hiện/gỡ bình luận, xử lý hoặc bỏ qua báo cáo; lưu người xử lý và thời điểm. |
 | PB33 | Quản lý tài khoản/thông tin dịch vụ | Đã triển khai | Trang/API Admin tìm và lọc User, xem gói còn hiệu lực và truyện đã mua; dữ liệu Customer cũ vẫn độc lập. |
 | PB34 | Khóa tài khoản thành viên | Đã triển khai | Admin khóa/mở User; đăng nhập và JWT đang hoạt động bị từ chối ngay khi tài khoản bị khóa, không thể đăng bình luận. |
-| PB35 | Thống kê hoạt động thành viên/giao dịch | Chưa triển khai | Chưa có gói/giao dịch hoặc dashboard thống kê. |
-| PB36 | Thống kê doanh thu | Chưa triển khai | Chưa có dữ liệu doanh thu. |
-| PB37 | Thống kê nội dung | Một phần | Có lượt đọc tổng và báo cáo lượt đọc theo chương/thời gian; chưa thống kê theo theo dõi, mua hoặc thể loại quan tâm. |
+| PB35 | Thống kê hoạt động thành viên/giao dịch | Đã triển khai | API Admin có khoảng ngày, đăng ký tài khoản, đăng ký/gia hạn gói, mua truyện, gói còn hạn và trạng thái giao dịch; Web có trang Thống kê. |
+| PB36 | Thống kê doanh thu | Đã triển khai | API/Admin hiển thị doanh thu giao dịch Success theo ngày/tháng, gói và truyện; Web có biểu đồ và phân rã nguồn thu. |
+| PB37 | Thống kê nội dung | Đã triển khai | Báo cáo theo kỳ có truyện được đọc/theo dõi/mua và thể loại được theo dõi nhiều; Web hiển thị xếp hạng. |
 | PB38 | CSDL, migration EF Core/SQL Server | Đã áp dụng | ApplicationDbContext và toàn bộ EF Core migrations đã áp dụng lên SQL Server local ngày 2026-10-27. |
 | PB39 | Khung API, Swagger, lỗi, CORS | Một phần | Swagger, CORS, validation cơ bản đã có; định dạng lỗi chưa thống nhất hoàn toàn. |
-| PB40 | Khung Web/Mobile cùng API | Một phần | Web React/Vite và Android Compose/Retrofit cùng gọi API; Room chưa được dùng cho đọc offline, URL Android cũng cần thống nhất. |
-| PB41 | Đọc offline trên Android | Chưa triển khai | Chưa thấy lưu chương Room/cache offline và đồng bộ. |
-| PB42 | Kiểm thử tích hợp và tài liệu API | Một phần | Có Swagger/README và đã smoke test thủ công các luồng giao dịch; chưa có bộ kiểm thử tích hợp tự động. |
+| PB40 | Khung Web/Mobile cùng API | Đã triển khai | React/Vite và Android Compose/Retrofit cùng gọi API; Room lưu bản đọc offline và hàng đợi tiến độ. |
+| PB41 | Đọc offline trên Android | Đã triển khai | Room lưu 100 tập gần nhất theo tài khoản, trình đọc dùng bản cache khi mất mạng và đồng bộ hàng đợi khi có mạng; build và test Android đã chạy qua. Migration đã áp dụng trên database phát triển ngày 2026-11-10; endpoint đọc xác nhận trả HTTP 200. |
+| PB42 | Kiểm thử tích hợp và tài liệu API | Một phần | Có script PowerShell kiểm tra ba API báo cáo và endpoint đồng bộ, test hợp đồng offline trên Android, Swagger/README/API reference. Chưa chạy script API với tài khoản Admin trong phiên kiểm tra. |
 
 ## Sai khác phạm vi và kiểm thử
 
 1. Backlog mô tả .NET 10, React + TypeScript + Tailwind và Room; repository hiện vẫn dùng .NET 8, React/Vite JavaScript và Android Retrofit.
 2. Thanh toán là mô phỏng và chưa nối cổng tiền thật; không dùng cho giao dịch thực tế.
-3. Đã smoke test thành công đăng ký/gia hạn, gia hạn nối thời hạn, thất bại không cấp quyền, từ chối đọc trước đối soát, Admin cấp quyền bù, lịch sử và idempotency. Không có kiểm thử tự động trong repository.
+3. Dashboard doanh thu chỉ tính giao dịch `Success`; phân loại gia hạn suy ra từ giao dịch thành công trước đó cùng gói và thành viên vì schema không lưu loại đăng ký/gia hạn riêng.
+4. Migration `Sprint5OfflineReadProgress` đã được áp dụng trên database phát triển ngày 2026-11-10. Kiểm thử API đồng bộ offline với tài khoản Admin vẫn chưa chạy trong phiên này.
 ## Cập nhật ma trận
 
-Khi triển khai hoặc đổi yêu cầu, cập nhật trạng thái và căn cứ trong bảng này cùng yêu cầu tương ứng ở [SRS-Functional-Requirements.md](SRS-Functional-Requirements.md). Trước khi phát hành, cần xác minh mỗi mục “Đã có” bằng kiểm thử chấp nhận trên API và các client liên quan.
+Khi triển khai hoặc đổi yêu cầu, cập nhật trạng thái và căn cứ trong bảng này cùng yêu cầu tương ứng ở [SRS-Functional-Requirements.md](SRS-Functional-Requirements.md). Hướng dẫn API và kiểm tra Sprint 5 nằm trong [API-Reference-Sprint5.md](API-Reference-Sprint5.md) và [tests](tests/Sprint5-ApiIntegration.Tests.ps1).

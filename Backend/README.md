@@ -27,6 +27,8 @@ Mặc định profile HTTP chạy tại `http://localhost:5059`. Mở Swagger �
 - `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`: tài khoản và xác thực.
 - `PUT /api/auth/profile`, `PUT /api/auth/password`: cập nhật tên hiển thị/avatar URL và đổi mật khẩu.
 - `GET /api/admin/read-events?from=...&to=...`: Admin xem thống kê lượt đọc theo chương trong khoảng ngày.
+- `GET /api/admin/analytics/activity`, `/revenue`, `/content`: Admin thống kê thành viên/giao dịch, doanh thu ngày/tháng theo gói/truyện và nội dung được đọc/theo dõi/mua nhiều. Tham số `from`/`to` nhận thời gian UTC, `to` không bao gồm; tối đa 366 ngày. Chi tiết response ở [API Reference Sprint 5](../Docs/API-Reference-Sprint5.md).
+- `POST /api/reading-progress/sync`: thành viên gửi lô tối đa 100 lượt đọc đã lưu offline. Server khử trùng lặp theo `clientEventId` trong từng tài khoản.
 - `GET /api/plans/available`: danh sách gói đang mở bán; `/api/plans` (Admin) quản lý gói và phạm vi.
 - `POST /api/payments/plans/{id}`, `POST /api/payments/stories/{id}`, `GET /api/payments/mine`: đăng ký/gia hạn, mua truyện và lịch sử giao dịch của thành viên.
 - `/api/admin/payments` (Admin): lọc giao dịch và `POST /{id}/reconcile` ghi chú đối soát/cấp quyền bù.
@@ -39,4 +41,4 @@ Trong Development, API nạp bổ sung các tập truyện mẫu nguyên tác v�
 
 ## Migration
 
-Sau khi cập nhật mã nguồn, chạy `dotnet ef database update`. Migration mới tạo giao dịch và bảng Chương; mỗi bản ghi nội dung cũ được giữ nguyên và chuyển thành Tập 1 của một Chương cùng tên. Số đọc nội bộ cũ được bảo toàn để URL reader/API cũ không đổi. Migration không tự áp dụng khi khởi động API.
+Sau khi cập nhật mã nguồn, chạy `dotnet ef database update`. Migration Sprint 5 thêm mã sự kiện máy khách vào ReadEvents để retry đồng bộ offline không ghi trùng. Migration không tự áp dụng khi khởi động API.

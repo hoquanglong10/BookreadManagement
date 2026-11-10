@@ -2,6 +2,7 @@ import {
   createChapterRequest, createCustomerRequest, createGenreRequest, createStoryRequest,
   deleteChapterRequest, deleteCustomerRequest, deleteGenreRequest, deleteStoryRequest,
   getCustomersRequest, getCustomerRequest, getPlansRequest, createPlanRequest, updatePlanRequest, getReadEventsRequest,
+  getAnalyticsActivityRequest, getAnalyticsRevenueRequest, getAnalyticsContentRequest,
   uploadStoryCoverRequest, updateChapterRequest, updateCustomerRequest, updateGenreRequest, updateStoryRequest
 } from "../api/adminApi.js";
 import { getChapterRequest } from "../api/catalogApi.js";
@@ -22,6 +23,9 @@ export const adminService = {
   createPlan: body => createPlanRequest(body),
   updatePlan: (id, body) => updatePlanRequest(id, body),
   getReadEvents: params => getReadEventsRequest(params),
+  getAnalyticsActivity: params => getAnalyticsActivityRequest(params),
+  getAnalyticsRevenue: params => getAnalyticsRevenueRequest(params),
+  getAnalyticsContent: params => getAnalyticsContentRequest(params),
   getCustomers: () => getCustomersRequest(),
   getCustomer: id => getCustomerRequest(id),
   createCustomer: body => createCustomerRequest(body),

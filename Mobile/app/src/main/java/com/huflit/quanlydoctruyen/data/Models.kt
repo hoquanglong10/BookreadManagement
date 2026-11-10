@@ -171,6 +171,16 @@ data class ChapterContent(
     val nextNumber: Int?
 )
 
+data class OfflineProgressSyncRequest(val events: List<OfflineProgressSyncEvent>)
+data class OfflineProgressSyncEvent(val clientEventId: String, val storyId: Int, val chapterNumber: Int, val viewedAt: String)
+data class OfflineProgressSyncResponse(
+    val syncedEventIds: List<String> = emptyList(),
+    val rejected: List<OfflineProgressRejectedEvent> = emptyList(),
+    val syncedCount: Int = 0,
+    val rejectedCount: Int = 0
+)
+data class OfflineProgressRejectedEvent(val clientEventId: String, val reason: String)
+
 data class PaymentRequest(val requestId: String, val simulateFailure: Boolean = false)
 data class SubscriptionPlanDto(
     val id: Int, val name: String, val price: Double, val durationDays: Int,

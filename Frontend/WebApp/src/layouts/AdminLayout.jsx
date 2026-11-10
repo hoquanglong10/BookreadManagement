@@ -9,9 +9,10 @@ const adminLinks = [
   { to: "/admin/customers", label: "Tài khoản", mark: "04" },
   { to: "/admin/plans", label: "Gói đọc", mark: "05" },
   { to: "/admin/read-events", label: "Lượt đọc", mark: "06" },
-  { to: "/admin/payments", label: "Giao dịch", mark: "07" },
-  { to: "/admin/community", label: "Thảo luận", mark: "08" },
-  { to: "/admin/users", label: "Thành viên", mark: "09" }
+  { to: "/admin/analytics", label: "Thống kê", mark: "07" },
+  { to: "/admin/payments", label: "Giao dịch", mark: "08" },
+  { to: "/admin/community", label: "Thảo luận", mark: "09" },
+  { to: "/admin/users", label: "Thành viên", mark: "10" }
 ];
 
 export default function AdminLayout() {

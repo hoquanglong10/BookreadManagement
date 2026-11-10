@@ -16,6 +16,9 @@ export const getPlansRequest = () => http.get("/api/plans").then(response => res
 export const createPlanRequest = body => http.post("/api/plans", body);
 export const updatePlanRequest = (id, body) => http.put(`/api/plans/${id}`, body);
 export const getReadEventsRequest = params => http.get("/api/admin/read-events", { params }).then(response => response.data);
+export const getAnalyticsActivityRequest = params => http.get("/api/admin/analytics/activity", { params }).then(response => response.data);
+export const getAnalyticsRevenueRequest = params => http.get("/api/admin/analytics/revenue", { params }).then(response => response.data);
+export const getAnalyticsContentRequest = params => http.get("/api/admin/analytics/content", { params }).then(response => response.data);
 
 export const getCustomersRequest = () => http.get("/api/customers").then(response => response.data);
 export const getCustomerRequest = id => http.get(`/api/customers/${id}`).then(response => response.data);

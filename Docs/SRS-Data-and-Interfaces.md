@@ -50,6 +50,17 @@ API dùng HTTP(S), JSON và tiền tố /api. Các route quản trị yêu cầu
 
 API hiện có thể trả danh sách thuần hoặc đối tượng phân trang tùy tham số gửi vào để tương thích các client hiện có. Hợp đồng đích nên chuẩn hóa một kiểu response phân trang.
 
+### Hợp đồng Sprint 5
+
+| Method | Endpoint | Quyền | Mục đích |
+|---|---|---|---|
+| GET | `/api/admin/analytics/activity?from=...&to=...` | Admin | Số thành viên mới, đăng ký/gia hạn gói, mua truyện, gói hiệu lực và trạng thái giao dịch. |
+| GET | `/api/admin/analytics/revenue?from=...&to=...&groupBy=day\|month` | Admin | Doanh thu thành công theo ngày/tháng, gói và truyện. |
+| GET | `/api/admin/analytics/content?from=...&to=...` | Admin | Truyện được đọc/theo dõi/mua nhiều và thể loại được theo dõi. |
+| POST | `/api/reading-progress/sync` | Thành viên | Đồng bộ tối đa 100 lượt đọc offline có mã idempotency cho mỗi lô. |
+
+Tham số `from` được tính gồm, `to` không gồm; các giá trị thời gian gửi theo UTC và mỗi kỳ tối đa 366 ngày. Android dùng Room, giữ tối đa 100 tập đã mở gần đây theo tài khoản. Migration thêm `ReadEvents.ClientEventId` và unique index `(UserId, ClientEventId)` để các lần retry không tạo lượt đọc trùng.
+
 ### Mã kết quả HTTP chính
 
 | Mã | Ý nghĩa thường gặp |

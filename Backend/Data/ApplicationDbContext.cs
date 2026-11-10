@@ -116,6 +116,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             readEvent.HasOne<Chapter>().WithMany().HasForeignKey(item => item.ChapterId).OnDelete(DeleteBehavior.Restrict);
             readEvent.HasIndex(item => new { item.StoryId, item.ChapterId, item.ViewedAt });
             readEvent.HasIndex(item => new { item.UserId, item.ViewedAt });
+            readEvent.HasIndex(item => new { item.UserId, item.ClientEventId })
+                .IsUnique()
+                .HasFilter("[UserId] IS NOT NULL AND [ClientEventId] IS NOT NULL");
         });
         modelBuilder.Entity<PaymentTransaction>(transaction =>
         {

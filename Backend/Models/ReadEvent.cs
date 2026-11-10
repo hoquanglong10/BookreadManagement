@@ -7,4 +7,5 @@ public class ReadEvent
     public int StoryId { get; set; }
     public int ChapterId { get; set; }
     public DateTime ViewedAt { get; set; } = DateTime.UtcNow;
+    public Guid? ClientEventId { get; set; }
 }

@@ -66,7 +66,7 @@ Các FR01–FR18 giữ nguyên mã trong phần Project Information của Produc
 ### FR18 — Ghi nhận hoạt động nội dung
 
 - Hệ thống phải ghi nhận lượt đọc ở cấp truyện/chương và hỗ trợ thống kê nội dung theo khoảng thời gian, lượt theo dõi, mua và mức quan tâm thể loại.
-- **Trạng thái:** Một phần. Mỗi lần đọc Tập tăng ViewCount và ghi ReadEvent; Admin xem lượt đọc theo thời gian/Tập. Theo dõi và thống kê các hành vi khác chưa có.
+- **Trạng thái:** Đã có. Admin lọc kỳ thống kê, xem truyện được đọc/theo dõi/mua nhiều và thể loại có nhiều lượt theo dõi; trang thống kê gọi API Admin.
 
 ## 4. Chính sách trả phí và giao dịch
 
@@ -153,12 +153,23 @@ Các FR01–FR18 giữ nguyên mã trong phần Project Information của Produc
 ### FR16 — Thống kê hoạt động
 
 - Admin phải lọc theo thời gian và xem số thành viên, đăng ký/gia hạn gói, mua truyện và trạng thái giao dịch.
-- **Trạng thái:** Chưa triển khai.
+- **Trạng thái:** Đã có API `GET /api/admin/analytics/activity` và trang `/admin/analytics`; đăng ký gói mới/gia hạn được phân loại theo lịch sử giao dịch cùng gói.
 
 ### FR17 — Thống kê doanh thu
 
 - Admin phải xem doanh thu theo gói, truyện và khoảng thời gian; hỗ trợ tổng hợp theo ngày/tháng.
-- **Trạng thái:** Chưa triển khai.
+- **Trạng thái:** Đã có API `GET /api/admin/analytics/revenue` và trang `/admin/analytics`; chỉ giao dịch `Success` được tính vào doanh thu.
+
+### FR24 — Đọc offline trên Android
+
+- Ứng dụng Android phải lưu tạm các Tập đã mở gần đây bằng Room, mở lại nội dung khi mất kết nối và đồng bộ tiến độ đã xếp hàng khi có mạng.
+- Nội dung cache được phân vùng theo tài khoản; nội dung trả phí chỉ được lưu sau khi Backend xác nhận quyền đọc.
+- **Trạng thái:** Đã có trong mã nguồn. Room lưu tối đa 100 Tập; tiến độ đồng bộ theo lô có mã chống ghi trùng. Migration Sprint 5 đã được áp dụng trên database phát triển ngày 2026-11-10; endpoint đọc đã trả HTTP 200 sau khi cập nhật.
+
+### FR25 — Kiểm thử tích hợp và hợp đồng API
+
+- API báo cáo và đồng bộ offline phải có kiểm thử tích hợp; Android phải xác nhận định dạng tiến độ gửi khớp hợp đồng Backend; tài liệu phải nêu quyền, dữ liệu trả về và giới hạn.
+- **Trạng thái:** Một phần. Có script PowerShell kiểm tra các endpoint trên API đang chạy, test hợp đồng Android và tài liệu API/Swagger. Các kiểm tra runtime cần chạy với database và tài khoản Admin đã cấu hình.
 
 ## 7. Yêu cầu chức năng hỗ trợ hiện có
 

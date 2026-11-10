@@ -1,5 +1,8 @@
 package com.huflit.quanlydoctruyen.ui.screens
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,12 +21,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,22 +38,68 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import com.huflit.quanlydoctruyen.data.OfflineReadingDatabase
+import com.huflit.quanlydoctruyen.data.OfflineReadingRepository
 import com.huflit.quanlydoctruyen.data.ApiClient
 import com.huflit.quanlydoctruyen.data.ChapterContent
 import com.huflit.quanlydoctruyen.data.SessionManager
 import com.huflit.quanlydoctruyen.data.UiState
-import com.huflit.quanlydoctruyen.data.load
+import com.huflit.quanlydoctruyen.data.httpCode
+import com.huflit.quanlydoctruyen.data.toMessage
 import com.huflit.quanlydoctruyen.ui.components.ErrorBox
 import com.huflit.quanlydoctruyen.ui.components.LoadingBox
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.IOException
+
+private data class ReaderContent(val chapter: ChapterContent, val isOffline: Boolean)
 
 // PB14: đọc chương, chuyển chương, chỉnh cỡ chữ, chế độ tối
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: () -> Unit, onPlans: () -> Unit, onLogin: () -> Unit) {
+    val context = LocalContext.current
+    val database = remember(context) { OfflineReadingDatabase.get(context) }
+    val repository = remember(database) { OfflineReadingRepository(database.offlineReadingDao()) }
+    val userId = SessionManager.user?.id
+    val scope = rememberCoroutineScope()
     var retry by remember { mutableIntStateOf(0) }
-    val state by produceState<UiState<ChapterContent>>(UiState.Loading, storyId, number, retry) {
+    val state by produceState<UiState<ReaderContent>>(UiState.Loading, storyId, number, retry, userId) {
         value = UiState.Loading
-        value = load { ApiClient.api.readChapter(storyId, number) }
+        try {
+            if (userId != null) runCatching { repository.syncPending(ApiClient.api, userId) }
+            val chapter = ApiClient.api.readChapter(storyId, number)
+            runCatching { repository.cache(chapter, userId ?: 0) }
+            value = UiState.Success(ReaderContent(chapter, isOffline = false))
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: IOException) {
+            val cached = runCatching { repository.getChapter(storyId, number, userId ?: 0) }.getOrNull()
+            if (cached == null) value = UiState.Error(failure.toMessage(), failure.httpCode())
+            else {
+                val chapter = cached.toChapterContent()
+                if (userId != null) runCatching { repository.recordOfflineRead(userId, chapter) }
+                value = UiState.Success(ReaderContent(chapter, isOffline = true))
+            }
+        } catch (failure: Exception) {
+            value = UiState.Error(failure.toMessage(), failure.httpCode())
+        }
+    }
+
+    DisposableEffect(context, userId, repository) {
+        if (userId == null) return@DisposableEffect onDispose { }
+        val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                scope.launch(Dispatchers.IO) {
+                    runCatching { repository.syncPending(ApiClient.api, userId) }
+                }
+            }
+        }
+        runCatching { connectivity.registerDefaultNetworkCallback(callback) }
+        onDispose { runCatching { connectivity.unregisterNetworkCallback(callback) } }
     }
 
     var fontSize by remember { mutableIntStateOf(SessionManager.readerFontSize) }
@@ -61,7 +112,7 @@ fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: 
         topBar = {
             TopAppBar(
                 title = {
-                    Text((state as? UiState.Success)?.data?.storyTitle ?: "Đọc truyện", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text((state as? UiState.Success)?.data?.chapter?.storyTitle ?: "Đọc truyện", maxLines = 1, overflow = TextOverflow.Ellipsis)
                 },
                 navigationIcon = { TextButton(onClick = onBack) { Text("‹ Mục lục") } }
             )
@@ -78,7 +129,7 @@ fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: 
                     if (s.code == 403) Button(onClick = onPlans, modifier = Modifier.fillMaxWidth()) { Text("Đăng ký / Gia hạn gói đọc") }
                 }
                 is UiState.Success -> {
-                    val c = s.data
+                    val c = s.data.chapter
                     LaunchedEffect(c.storyId, c.number) {
                         SessionManager.markEpisodeRead(c.storyId, c.number)
                     }
@@ -90,6 +141,9 @@ fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: 
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
+                        if (s.data.isOffline) {
+                            Text("Đang đọc bản đã lưu · Tiến độ sẽ đồng bộ khi có mạng", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp))
+                        }
 
                         Row(
                             Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -105,7 +159,9 @@ fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: 
                         }
 
                         ChapterNav(c, onGoTo)
-                        ChapterDiscussion(c.storyChapterId, onLogin)
+                        if (s.data.isOffline) {
+                            Text("Bình luận sẽ hiển thị khi có kết nối mạng.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 12.dp))
+                        } else ChapterDiscussion(c.storyChapterId, onLogin)
 
                         c.content.split(Regex("\n+")).filter { it.isNotBlank() }.forEach { paragraph ->
                             Text(

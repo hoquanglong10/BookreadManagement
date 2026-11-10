@@ -344,6 +344,9 @@ namespace CustomerManagement.API.Migrations
                     b.Property<int>("ChapterId")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("ClientEventId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("StoryId")
                         .HasColumnType("int");
 
@@ -356,6 +359,10 @@ namespace CustomerManagement.API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ChapterId");
+
+                    b.HasIndex("UserId", "ClientEventId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL AND [ClientEventId] IS NOT NULL");
 
                     b.HasIndex("UserId", "ViewedAt");
 

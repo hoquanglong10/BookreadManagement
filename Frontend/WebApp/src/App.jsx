@@ -8,6 +8,7 @@ import AdminGenresPage from "./pages/AdminGenresPage.jsx";
 import AdminStoriesPage from "./pages/AdminStoriesPage.jsx";
 import AdminPlansPage from "./pages/AdminPlansPage.jsx";
 import AdminReadEventsPage from "./pages/AdminReadEventsPage.jsx";
+import AdminAnalyticsPage from "./pages/AdminAnalyticsPage.jsx";
 import AdminPaymentsPage from "./pages/AdminPaymentsPage.jsx";
 import AdminUsersPage from "./pages/AdminUsersPage.jsx";
 import AdminCommunityPage from "./pages/AdminCommunityPage.jsx";
@@ -60,6 +61,7 @@ function AppRoutes() {
         <Route path="customers" element={<AdminCustomersPage />} />
         <Route path="plans" element={<AdminPlansPage />} />
         <Route path="read-events" element={<AdminReadEventsPage />} />
+        <Route path="analytics" element={<AdminAnalyticsPage />} />
         <Route path="payments" element={<AdminPaymentsPage />} />
         <Route path="community" element={<AdminCommunityPage />} />
         <Route path="users" element={<AdminUsersPage />} />

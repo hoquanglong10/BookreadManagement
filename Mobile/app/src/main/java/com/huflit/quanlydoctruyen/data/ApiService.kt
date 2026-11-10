@@ -57,6 +57,9 @@ interface ApiService {
     @GET("api/reading-progress")
     suspend fun readingProgress(): ReadingProgressResponse
 
+    @POST("api/reading-progress/sync")
+    suspend fun syncReadingProgress(@Body body: OfflineProgressSyncRequest): OfflineProgressSyncResponse
+
     // PB28, PB29
     @GET("api/follows")
     suspend fun followedStories(): FollowedStoryResponse
