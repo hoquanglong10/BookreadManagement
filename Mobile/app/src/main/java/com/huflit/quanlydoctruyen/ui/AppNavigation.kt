@@ -13,20 +13,27 @@ import com.huflit.quanlydoctruyen.ui.screens.ProfileScreen
 import com.huflit.quanlydoctruyen.ui.screens.RegisterScreen
 import com.huflit.quanlydoctruyen.ui.screens.StoryDetailScreen
 import com.huflit.quanlydoctruyen.ui.screens.LibraryScreen
+import com.huflit.quanlydoctruyen.data.SessionManager
 
 private const val READ_ROUTE = "story/{id}/chapter/{number}"
 
 @Composable
 fun AppNavigation() {
     val nav = rememberNavController()
+    fun goToRoot(route: String) {
+        nav.navigate(route) {
+            popUpTo("home") { inclusive = false }
+            launchSingleTop = true
+        }
+    }
 
     NavHost(nav, startDestination = "home") {
         composable("home") {
             HomeScreen(
                 onOpenStory = { id -> nav.navigate("story/$id") },
                 onLogin = { nav.navigate("login") },
-                onProfile = { nav.navigate("profile") },
-                onLibrary = { nav.navigate("library") }
+                onProfile = { if (SessionManager.user != null) goToRoot("profile") else nav.navigate("login") },
+                onLibrary = { goToRoot("library") }
             )
         }
 
@@ -34,7 +41,9 @@ fun AppNavigation() {
             LibraryScreen(
                 onOpenStory = { id -> nav.navigate("story/$id") },
                 onRead = { id, number -> nav.navigate("story/$id/chapter/$number") },
-                onBack = { nav.popBackStack() }
+                onHome = { goToRoot("home") },
+                onProfile = { if (SessionManager.user != null) goToRoot("profile") else nav.navigate("login") },
+                onLogin = { nav.navigate("login") }
             )
         }
 
@@ -45,7 +54,7 @@ fun AppNavigation() {
                 onRead = { number -> nav.navigate("story/$id/chapter/$number") },
                 onBack = { nav.popBackStack() },
                 onLogin = { nav.navigate("login") },
-                onPlans = { nav.navigate("profile") }
+                onPlans = { if (SessionManager.user != null) nav.navigate("profile") else nav.navigate("login") }
             )
         }
 
@@ -67,7 +76,7 @@ fun AppNavigation() {
                     }
                 },
                 onBack = { nav.popBackStack() },
-                onPlans = { nav.navigate("profile") },
+                onPlans = { if (SessionManager.user != null) nav.navigate("profile") else nav.navigate("login") },
                 onLogin = { nav.navigate("login") }
             )
         }
@@ -88,7 +97,11 @@ fun AppNavigation() {
         }
 
         composable("profile") {
-            ProfileScreen(onBack = { nav.popBackStack() })
+            ProfileScreen(
+                onBack = { nav.popBackStack() },
+                onHome = { goToRoot("home") },
+                onLibrary = { goToRoot("library") }
+            )
         }
     }
 }

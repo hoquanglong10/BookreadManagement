@@ -4,6 +4,7 @@ import { responseError } from "../api/http.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { communityService } from "../services/communityService.js";
 import { formatDate } from "../utils/format.js";
+import "./ChapterDiscussion.css";
 
 function discussionError(reason) {
   const status = reason?.response?.status;
@@ -115,8 +116,7 @@ export default function ChapterDiscussion({ storyChapterId, chapterTitle, chapte
     setReplyTo(comment);
     setReportTarget(null);
     setContent("");
-    composeRef.current?.focus();
-    composeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    composeRef.current?.focus({ preventScroll: true });
   }
 
   function startReport(comment) {
@@ -152,9 +152,10 @@ export default function ChapterDiscussion({ storyChapterId, chapterTitle, chapte
 
   const author = user?.displayName || user?.username || "Độc giả";
 
-  return <section className="chapter-discussion reader-discussion" aria-labelledby="discussion-title">
+  return <section className="chapter-discussion reader-discussion discussion-redesign" aria-labelledby="discussion-title">
     <header className="reader-discussion__header">
-      <div>
+      <div className="reader-discussion__intro">
+        <span className="reader-discussion__eyebrow">BÌNH LUẬN CHƯƠNG</span>
         <h2 id="discussion-title">Thảo luận</h2>
         <p>{chapterNumber ? `Chương ${chapterNumber}${chapterTitle ? ` · ${chapterTitle}` : ""}` : "Cùng bạn đọc trao đổi về câu chuyện"}</p>
       </div>
@@ -165,7 +166,10 @@ export default function ChapterDiscussion({ storyChapterId, chapterTitle, chapte
     {error && <div className="reader-discussion__error" role="alert"><p>{error}</p><button className="reader-discussion__text-button" type="button" onClick={() => reload({ initial: true })}>Thử lại</button></div>}
 
     {user ? <form className="reader-discussion__composer" onSubmit={submit}>
-      <span className="reader-comment__avatar reader-comment__avatar--current" aria-hidden="true">{initials(author)}</span>
+      <div className="reader-discussion__composer-head">
+        <span className="reader-comment__avatar reader-comment__avatar--current" aria-hidden="true">{initials(author)}</span>
+        <div><strong>Chia sẻ cảm nhận</strong><span>Trao đổi về nội dung chương một cách văn minh.</span></div>
+      </div>
       <div className="reader-discussion__composer-main">
         {replyTo && <div className="reader-discussion__replying"><span>Đang trả lời <strong>{replyTo.author}</strong></span><button className="reader-discussion__text-button" type="button" onClick={() => setReplyTo(null)}>Hủy trả lời</button></div>}
         <label className="sr-only" htmlFor="discussion-compose">Viết bình luận</label>

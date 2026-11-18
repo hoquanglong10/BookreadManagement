@@ -3,6 +3,16 @@
 Giao diện web dùng React, Vite, Tailwind CSS, React Router và Axios. `WebApp` là
 ứng dụng web duy nhất của dự án.
 
+## Cấu hình môi trường
+
+Trong `Frontend/WebApp`, sao chép `.env.example` thành `.env` rồi chỉnh:
+
+- `VITE_API_PROXY_TARGET`: địa chỉ backend dùng cho proxy khi chạy Vite.
+- `VITE_API_BASE_URL`: để trống nếu API cùng origin; điền URL API nếu frontend
+  và backend được triển khai ở hai origin khác nhau.
+
+Vite hỗ trợ alias `@/` trỏ tới `src/`.
+
 ## Chạy ở chế độ phát triển
 
 Khởi động backend trước theo [Backend/README.md](../Backend/README.md), tại

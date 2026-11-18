@@ -2,13 +2,19 @@ package com.huflit.quanlydoctruyen.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -24,6 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.huflit.quanlydoctruyen.data.ApiClient
@@ -34,11 +42,12 @@ import com.huflit.quanlydoctruyen.data.PaymentHistoryDto
 import com.huflit.quanlydoctruyen.data.SubscriptionPlanDto
 import com.huflit.quanlydoctruyen.data.UpdateProfileRequest
 import com.huflit.quanlydoctruyen.data.toMessage
+import com.huflit.quanlydoctruyen.ui.components.RootNavigationBar
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onBack: () -> Unit) {
+fun ProfileScreen(onBack: () -> Unit, onHome: () -> Unit, onLibrary: () -> Unit) {
     val user = SessionManager.user
     var displayName by remember { mutableStateOf(user?.displayName?.ifBlank { user.username } ?: "") }
     var avatarUrl by remember { mutableStateOf(user?.avatarUrl.orEmpty()) }
@@ -52,6 +61,7 @@ fun ProfileScreen(onBack: () -> Unit) {
     var payments by remember { mutableStateOf<List<PaymentHistoryDto>>(emptyList()) }
     var simulateFailure by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val profileScroll = rememberScrollState()
 
     LaunchedEffect(user?.id) {
         runCatching { ApiClient.api.availablePlans() }.onSuccess { plans = it }
@@ -59,12 +69,27 @@ fun ProfileScreen(onBack: () -> Unit) {
     }
 
     Scaffold(topBar = {
-        TopAppBar(title = { Text("Hồ sơ độc giả") }, navigationIcon = { TextButton(onClick = onBack) { Text("‹ Quay lại") } })
+        TopAppBar(
+            title = { Text("Tài khoản", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) },
+            navigationIcon = { TextButton(onClick = onBack) { Text("‹ Quay lại") } },
+            actions = { TextButton(onClick = { SessionManager.logout(); onHome() }) { Text("Đăng xuất") } }
+        )
+    }, bottomBar = {
+        RootNavigationBar(selected = 2, onHome = onHome, onLibrary = onLibrary, onProfile = { scope.launch { profileScroll.animateScrollTo(0) } })
     }) { padding ->
         Column(
-            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
+            Modifier.padding(padding).fillMaxSize().verticalScroll(profileScroll).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.padding(bottom = 6.dp)) {
+                Box(Modifier.size(58.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                    Text((displayName.firstOrNull() ?: user?.username?.firstOrNull() ?: 'Đ').uppercase(), color = MaterialTheme.colorScheme.onPrimaryContainer, style = MaterialTheme.typography.titleLarge)
+                }
+                Column {
+                    Text(displayName.ifBlank { user?.username.orEmpty() }, style = MaterialTheme.typography.titleLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    Text("@${user?.username.orEmpty()} · ${user?.role ?: "Độc giả"}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             Text("Thông tin cá nhân", style = MaterialTheme.typography.titleLarge)
             OutlinedTextField(value = user?.username.orEmpty(), onValueChange = {}, readOnly = true, label = { Text("Tên đăng nhập") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = user?.email.orEmpty(), onValueChange = {}, readOnly = true, label = { Text("Email") }, modifier = Modifier.fillMaxWidth())
@@ -82,6 +107,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                 }
             }, modifier = Modifier.fillMaxWidth()) { Text(if (busy) "Đang lưu…" else "Lưu hồ sơ") }
 
+            HorizontalDivider(Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
             Text("Bảo mật", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 16.dp))
             OutlinedTextField(value = currentPassword, onValueChange = { currentPassword = it }, label = { Text("Mật khẩu hiện tại") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = newPassword, onValueChange = { newPassword = it }, label = { Text("Mật khẩu mới (8–128 ký tự)") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, modifier = Modifier.fillMaxWidth())
@@ -101,6 +127,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                 }
             }, modifier = Modifier.fillMaxWidth()) { Text("Đổi mật khẩu") }
 
+            HorizontalDivider(Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
             Text("Gói đọc và gia hạn", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 20.dp))
             Text("Thanh toán minh họa, không kết nối ngân hàng và không trừ tiền thật.", style = MaterialTheme.typography.bodySmall)
             if (SessionManager.token != null) {

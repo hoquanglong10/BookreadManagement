@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,7 +28,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.huflit.quanlydoctruyen.data.ApiClient
@@ -43,8 +48,10 @@ import kotlin.coroutines.cancellation.CancellationException
 fun LoginScreen(onSuccess: () -> Unit, onRegister: () -> Unit, onBack: () -> Unit) {
     var login by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var showPassword by rememberSaveable { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
+    val passwordFocus = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
 
     fun submit() {
@@ -80,7 +87,8 @@ fun LoginScreen(onSuccess: () -> Unit, onRegister: () -> Unit, onBack: () -> Uni
         Column(
             Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)
         ) {
-            Text("Chào mừng bạn quay lại", fontSize = 22.sp, style = MaterialTheme.typography.titleLarge)
+            Text("Mừng bạn trở lại", fontSize = 26.sp, style = MaterialTheme.typography.headlineSmall, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            Text("Đăng nhập để tiếp tục đọc và đồng bộ thư viện của bạn.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
             Spacer(Modifier.height(20.dp))
 
             OutlinedTextField(
@@ -88,6 +96,8 @@ fun LoginScreen(onSuccess: () -> Unit, onRegister: () -> Unit, onBack: () -> Uni
                 onValueChange = { login = it },
                 label = { Text("Tên đăng nhập hoặc email") },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { passwordFocus.requestFocus() }),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(12.dp))
@@ -96,9 +106,11 @@ fun LoginScreen(onSuccess: () -> Unit, onRegister: () -> Unit, onBack: () -> Uni
                 onValueChange = { password = it },
                 label = { Text("Mật khẩu") },
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth()
+                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { submit() }),
+                trailingIcon = { TextButton(onClick = { showPassword = !showPassword }) { Text(if (showPassword) "Ẩn" else "Hiện") } },
+                modifier = Modifier.fillMaxWidth().focusRequester(passwordFocus)
             )
 
             if (error != null) {

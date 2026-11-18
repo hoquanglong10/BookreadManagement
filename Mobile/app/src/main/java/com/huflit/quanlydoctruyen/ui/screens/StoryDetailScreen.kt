@@ -1,6 +1,7 @@
 package com.huflit.quanlydoctruyen.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -36,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.huflit.quanlydoctruyen.data.ApiClient
 import com.huflit.quanlydoctruyen.data.StoryDetail
 import com.huflit.quanlydoctruyen.data.PaymentRequest
@@ -66,6 +69,21 @@ fun StoryDetailScreen(storyId: Int, onRead: (Int) -> Unit, onBack: () -> Unit, o
                 title = { Text((state as? UiState.Success)?.data?.title ?: "Chi tiết truyện", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { TextButton(onClick = onBack) { Text("‹ Quay lại") } }
             )
+        },
+        bottomBar = {
+            val story = (state as? UiState.Success)?.data
+            val readable = story?.chapters?.filter { it.isPublished && it.hasContent && it.canRead }.orEmpty()
+            val lastRead = story?.lastReadNumber?.let { number -> readable.find { it.number == number } }
+            val nextToRead = lastRead ?: readable.firstOrNull()
+            if (story != null && nextToRead != null) {
+                Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 3.dp) {
+                    Button(
+                        onClick = { onRead(nextToRead.number) },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) { Text(if (lastRead != null) "Đọc tiếp · Tập ${nextToRead.episodeNumber}" else "Bắt đầu đọc") }
+                }
+            }
         }
     ) { padding ->
         when (val s = state) {
@@ -79,13 +97,14 @@ fun StoryDetailScreen(storyId: Int, onRead: (Int) -> Unit, onBack: () -> Unit, o
 @Composable
 private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogin: () -> Unit, onPlans: () -> Unit, onPurchaseSuccess: () -> Unit, modifier: Modifier) {
     val published = story.chapters.filter { it.isPublished }
-    val readable = published.filter { it.hasContent && it.canRead }
-    val lastReadEpisode = story.lastReadNumber?.let { lastNumber -> readable.find { it.number == lastNumber } }
-    val continueEpisode = lastReadEpisode ?: readable.firstOrNull()
     val grouped = published.groupBy { it.storyChapterNumber.takeIf { number -> number > 0 } ?: it.number }.toSortedMap()
+    var chapterQuery by remember(story.id) { mutableStateOf("") }
+    var expandedGroup by remember(story.id) { mutableIntStateOf(grouped.keys.firstOrNull() ?: -1) }
+    val visibleGroups = grouped.filter { (_, episodes) ->
+        chapterQuery.isBlank() || episodes.any { it.title.contains(chapterQuery, ignoreCase = true) || it.storyChapterTitle.contains(chapterQuery, ignoreCase = true) }
+    }
     var purchaseBusy by remember(story.id) { mutableStateOf(false) }
     var paymentMessage by remember(story.id) { mutableStateOf("") }
-    var simulateFailure by remember(story.id) { mutableStateOf(false) }
     var isFollowing by remember(story.id, SessionManager.user?.id) { mutableStateOf(false) }
     var followBusy by remember(story.id) { mutableStateOf(false) }
     var followMessage by remember(story.id) { mutableStateOf("") }
@@ -100,7 +119,7 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
     LazyColumn(modifier.fillMaxSize()) {
         item {
             Row(Modifier.padding(16.dp)) {
-                CoverPlaceholder(story.title, Modifier.width(110.dp).height(150.dp))
+                CoverPlaceholder(story.title, Modifier.width(110.dp).height(150.dp), story.coverUrl)
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
                     Text(story.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -126,11 +145,6 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
 
         item {
             Column(Modifier.padding(horizontal = 16.dp)) {
-                if (continueEpisode != null) {
-                    Button(onClick = { onRead(continueEpisode.number) }, modifier = Modifier.fillMaxWidth()) {
-                        Text(if (lastReadEpisode != null) "Đọc tiếp" else "Đọc từ đầu")
-                    }
-                }
                 OutlinedButton(enabled = !followBusy, onClick = {
                     if (SessionManager.user == null) { onLogin(); return@OutlinedButton }
                     scope.launch {
@@ -155,9 +169,9 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
                         scope.launch {
                             purchaseBusy = true; paymentMessage = ""
                             try {
-                                val requestScope = "story:${story.id}:$simulateFailure"
+                                val requestScope = "story:${story.id}"
                                 val requestId = SessionManager.paymentRequestId(requestScope)
-                                val result = ApiClient.api.buyStory(story.id, PaymentRequest(requestId, simulateFailure))
+                                val result = ApiClient.api.buyStory(story.id, PaymentRequest(requestId))
                                 SessionManager.completePaymentRequest(requestScope)
                                 if (result.status == "Success") { paymentMessage = "Đã mở quyền đọc truyện."; onPurchaseSuccess() }
                                 else paymentMessage = result.failureReason ?: "Giao dịch thất bại, chưa cấp quyền."
@@ -167,7 +181,6 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
                     }, modifier = Modifier.fillMaxWidth()) {
                         Text(if (purchaseBusy) "Đang xử lý…" else "Mua truyện · ${story.price.toLong()} ₫")
                     }
-                    TextButton(onClick = { simulateFailure = !simulateFailure }) { Text(if (simulateFailure) "Đang mô phỏng giao dịch thất bại" else "Dùng thử trạng thái giao dịch thất bại") }
                 }
                 if (story.hasPurchase) Text("Đã sở hữu quyền đọc trọn truyện.", color = MaterialTheme.colorScheme.primary)
                 if (story.hasPlanAccess && !story.hasPurchase) TextButton(onClick = onPlans) { Text("Gói đọc đang cấp quyền · Xem gói và gia hạn") }
@@ -178,6 +191,14 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                 )
+                androidx.compose.material3.OutlinedTextField(
+                    value = chapterQuery,
+                    onValueChange = { chapterQuery = it },
+                    singleLine = true,
+                    placeholder = { Text("Tìm trong mục lục") },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+                    shape = RoundedCornerShape(14.dp)
+                )
             }
         }
 
@@ -185,10 +206,22 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
             item { Text("Truyện chưa có chương nào", Modifier.padding(16.dp)) }
         }
 
-        items(grouped.entries.toList(), key = { it.key }) { (groupNumber, episodes) ->
+        items(visibleGroups.entries.toList(), key = { it.key }) { (groupNumber, episodes) ->
             Column(Modifier.fillMaxWidth()) {
                 val groupTitle = episodes.firstOrNull()?.storyChapterTitle?.takeIf(String::isNotBlank)
-                Text("Chương $groupNumber${groupTitle?.let { ": $it" }.orEmpty()}", Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 6.dp), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                val expanded = expandedGroup == groupNumber || chapterQuery.isNotBlank()
+                Row(
+                    Modifier.fillMaxWidth().clickable { expandedGroup = if (expandedGroup == groupNumber) -1 else groupNumber }
+                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Chương $groupNumber${groupTitle?.let { ": $it" }.orEmpty()}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        Text("${episodes.size} tập", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(if (expanded) "−" else "+", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
+                }
+                AnimatedVisibility(visible = expanded) { Column {
                 episodes.sortedBy { it.episodeNumber }.forEach { episode ->
                     Row(
                         Modifier.fillMaxWidth()
@@ -212,7 +245,11 @@ private fun StoryDetailContent(story: StoryDetail, onRead: (Int) -> Unit, onLogi
                     }
                     HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                 }
+                } }
             }
+        }
+        if (chapterQuery.isNotBlank() && visibleGroups.isEmpty()) {
+            item { Text("Không tìm thấy tập phù hợp.", Modifier.padding(20.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
     }
 }

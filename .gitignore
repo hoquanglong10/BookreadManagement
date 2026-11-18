@@ -19,4 +19,5 @@ Mobile/.kotlin/
 *.p12
 .env
 .env.*
+!.env.example
 Backend/wwwroot/uploads/

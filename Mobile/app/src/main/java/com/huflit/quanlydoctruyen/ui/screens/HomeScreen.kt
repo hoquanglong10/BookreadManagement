@@ -16,12 +16,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -55,6 +57,7 @@ import com.huflit.quanlydoctruyen.data.StoryListItem
 import com.huflit.quanlydoctruyen.data.toMessage
 import com.huflit.quanlydoctruyen.ui.components.CoverPlaceholder
 import com.huflit.quanlydoctruyen.ui.components.ErrorBox
+import com.huflit.quanlydoctruyen.ui.components.RootNavigationBar
 import com.huflit.quanlydoctruyen.ui.components.StatusBadge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
@@ -91,6 +94,7 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () ->
     var error by remember { mutableStateOf<String?>(null) }
     var reloadKey by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
     val user = SessionManager.user
 
     LaunchedEffect(user?.id) {
@@ -152,90 +156,130 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () ->
         }
     }
 
+    val discoveryMode = keyword.isBlank() && selectedGenreId == null
+    val featuredStoryIds = remember(updatedStories.toList(), newestStories.toList(), popularStories.toList()) {
+        (updatedStories + newestStories + popularStories).mapTo(mutableSetOf()) { it.id }
+    }
+    val visibleStories = if (discoveryMode) stories.filterNot { it.id in featuredStoryIds } else stories
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Đọc Truyện", fontWeight = FontWeight.Bold) },
-                actions = {
-                    if (user != null) {
-                        TextButton(onClick = onLibrary) { Text("Thư viện") }
-                        TextButton(onClick = onProfile) { Text(user.displayName.ifBlank { user.username }) }
-                        TextButton(onClick = onProfile) { Text("Hồ sơ") }
-                        TextButton(onClick = { SessionManager.logout() }) { Text("Đăng xuất") }
-                    } else {
-                        TextButton(onClick = onLogin) { Text("Đăng nhập") }
-                    }
-                }
+                actions = { if (user == null) TextButton(onClick = onLogin) { Text("Đăng nhập") } }
             )
-        }
+        },
+        bottomBar = {
+            RootNavigationBar(selected = 0, onHome = { scope.launch { listState.animateScrollToItem(0) } }, onLibrary = onLibrary, onProfile = onProfile)
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
-            OutlinedTextField(
-                value = input,
-                onValueChange = { input = it },
-                placeholder = { Text("Tìm theo tên truyện hoặc tác giả") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { keyword = input.trim() }),
-                trailingIcon = { TextButton(onClick = { keyword = input.trim() }) { Text("Tìm") } },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                SORTS.forEach { (value, label) ->
-                    FilterChip(selected = sort == value, onClick = { sort = value }, label = { Text(label) })
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.padding(padding).fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            item {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
+                    Text(
+                        if (user == null) "KHÔNG GIAN ĐỌC CỦA BẠN" else "XIN CHÀO, ${user.displayName.ifBlank { user.username }.uppercase()}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        if (discoveryMode) "Hôm nay đọc gì?" else "Tìm câu chuyện tiếp theo",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    Text(
+                        "Khám phá những câu chuyện hợp gu của bạn.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 3.dp)
+                    )
                 }
             }
-
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilterChip(selected = selectedGenreId == null, onClick = { selectedGenreId = null }, label = { Text("Tất cả thể loại") })
-                genres.forEach { genre ->
-                    FilterChip(selected = selectedGenreId == genre.id, onClick = { selectedGenreId = if (selectedGenreId == genre.id) null else genre.id }, label = { Text(genre.name) })
+            item {
+                OutlinedTextField(
+                    value = input,
+                    onValueChange = { input = it },
+                    placeholder = { Text("Tìm truyện, tác giả…") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { keyword = input.trim() }),
+                    trailingIcon = { TextButton(onClick = { keyword = input.trim() }) { Text("Tìm") } },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+            }
+            if (!discoveryMode) {
+                item {
+                    Row(
+                        Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SORTS.forEach { (value, label) ->
+                            FilterChip(selected = sort == value, onClick = { sort = value }, label = { Text(label) })
+                        }
+                    }
                 }
             }
-
-            if (keyword.isNotBlank()) {
-                Text(
-                    "Kết quả cho \"$keyword\"",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                )
-            }
-
-            when {
-                error != null && stories.isEmpty() -> ErrorBox(error!!, onRetry = { reloadKey++ })
-                !loading && stories.isEmpty() -> Text(
-                    "Không tìm thấy truyện phù hợp",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(32.dp)
-                )
-                else -> LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+            item {
+                Row(
+                    Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (keyword.isBlank() && selectedGenreId == null) {
-                        if (user != null && readingProgress.isNotEmpty()) {
-                            item { ReadingProgressShelf(readingProgress, onOpenStory) }
-                        }
-                        item { StoryShelf("Mới cập nhật", updatedStories, onOpenStory) }
-                        item { StoryShelf("Mới phát hành", newestStories, onOpenStory) }
-                        item { StoryShelf("Đọc nhiều", popularStories, onOpenStory) }
+                    FilterChip(selected = selectedGenreId == null, onClick = { selectedGenreId = null }, label = { Text("Tất cả") })
+                    genres.forEach { genre ->
+                        FilterChip(selected = selectedGenreId == genre.id, onClick = { selectedGenreId = if (selectedGenreId == genre.id) null else genre.id }, label = { Text(genre.name) })
                     }
-                    items(stories, key = { it.id }) { story ->
-                        StoryRow(story, onClick = { onOpenStory(story.id) })
+                }
+            }
+            if (keyword.isNotBlank()) {
+                item {
+                    Text(
+                        "Kết quả cho “$keyword”",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                    )
+                }
+            }
+            if (error != null && stories.isEmpty()) {
+                item { ErrorBox(error!!, Modifier.height(220.dp), onRetry = { reloadKey++ }) }
+            } else {
+                if (discoveryMode) {
+                    if (user != null && readingProgress.isNotEmpty()) {
+                        item { ReadingProgressShelf(readingProgress, onOpenStory) }
                     }
+                    item { StoryShelf("Mới cập nhật", updatedStories, onOpenStory) }
+                    item { StoryShelf("Mới phát hành", newestStories, onOpenStory) }
+                    item { StoryShelf("Đọc nhiều", popularStories, onOpenStory) }
                     item {
-                        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                            if (loading) CircularProgressIndicator(Modifier.padding(8.dp))
-                            else if (page < totalPages) OutlinedButton(onClick = { loadMore() }) { Text("Xem thêm") }
+                        Text(
+                            "Khám phá thêm",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 4.dp)
+                        )
+                    }
+                }
+                if (!loading && stories.isEmpty()) {
+                    item {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Chưa tìm thấy truyện phù hợp", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+                            Text("Thử từ khóa khác hoặc bỏ bớt bộ lọc.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 6.dp))
                         }
+                    }
+                }
+                items(visibleStories, key = { it.id }) { story ->
+                    StoryRow(story, onClick = { onOpenStory(story.id) })
+                }
+                item {
+                    Column(Modifier.fillMaxWidth().padding(vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (loading) CircularProgressIndicator(Modifier.padding(8.dp))
+                        else if (page < totalPages) OutlinedButton(onClick = { loadMore() }) { Text("Xem thêm truyện") }
                     }
                 }
             }
@@ -245,15 +289,16 @@ fun HomeScreen(onOpenStory: (Int) -> Unit, onLogin: () -> Unit, onProfile: () ->
 
 @Composable
 private fun ReadingProgressShelf(progress: List<ReadingProgressItem>, onOpenStory: (Int) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.padding(horizontal = 20.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Đọc tiếp", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(progress, key = { "progress-${it.storyId}" }) { item ->
-                Card(Modifier.width(220.dp).clickable { onOpenStory(item.storyId) }) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Row(Modifier.width(248.dp).clickable { onOpenStory(item.storyId) }.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    CoverPlaceholder(item.storyTitle, Modifier.width(48.dp).height(66.dp), item.coverUrl)
+                    Column(Modifier.weight(1f).align(Alignment.CenterVertically), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                         Text(item.storyTitle, maxLines = 2, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
-                        Text("Chương ${item.storyChapterNumber} · Tập ${item.episodeNumber}", style = MaterialTheme.typography.bodySmall)
-                        Text("Mở lại truyện để tiếp tục →", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                        Text("Chương ${item.storyChapterNumber} · Tập ${item.episodeNumber}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Đọc tiếp  →", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -264,16 +309,14 @@ private fun ReadingProgressShelf(progress: List<ReadingProgressItem>, onOpenStor
 @Composable
 private fun StoryShelf(title: String, stories: List<StoryListItem>, onOpenStory: (Int) -> Unit) {
     if (stories.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.padding(horizontal = 20.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(stories, key = { "${title}-${it.id}" }) { story ->
-                Card(Modifier.width(116.dp).clickable { onOpenStory(story.id) }) {
-                    Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                        CoverPlaceholder(story.title, Modifier.fillMaxWidth().height(128.dp))
-                        Text(story.title, maxLines = 2, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
-                        Text("${story.storyChapterCount} chương · ${story.episodeCount.takeIf { it > 0 } ?: story.chapterCount} tập", style = MaterialTheme.typography.labelSmall)
-                    }
+                Column(Modifier.width(118.dp).clickable { onOpenStory(story.id) }, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    CoverPlaceholder(story.title, Modifier.fillMaxWidth().height(152.dp), story.coverUrl)
+                    Text(story.title, maxLines = 2, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
+                    Text("${story.storyChapterCount} chương", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -282,9 +325,9 @@ private fun StoryShelf(title: String, stories: List<StoryListItem>, onOpenStory:
 
 @Composable
 private fun StoryRow(story: StoryListItem, onClick: () -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Row(Modifier.padding(10.dp)) {
-            CoverPlaceholder(story.title, Modifier.width(64.dp).height(86.dp))
+    Column(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        Row(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
+            CoverPlaceholder(story.title, Modifier.width(68.dp).height(92.dp), story.coverUrl)
             Spacer(Modifier.size(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(story.title, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -303,5 +346,6 @@ private fun StoryRow(story: StoryListItem, onClick: () -> Unit) {
                 }
             }
         }
+        HorizontalDivider(Modifier.padding(start = 20.dp, end = 20.dp))
     }
 }

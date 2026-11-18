@@ -26,8 +26,10 @@ export function clearToken() {
   }
 }
 
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+
 export const http = axios.create({
-  baseURL: import.meta.env.DEV ? "/" : window.location.origin,
+  baseURL: configuredApiBaseUrl || (import.meta.env.DEV ? "/" : window.location.origin),
   headers: { Accept: "application/json" },
   timeout: 15000
 });

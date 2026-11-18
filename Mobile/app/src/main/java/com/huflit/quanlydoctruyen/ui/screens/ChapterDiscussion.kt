@@ -1,14 +1,19 @@
 package com.huflit.quanlydoctruyen.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -24,6 +29,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.huflit.quanlydoctruyen.data.ApiClient
@@ -44,6 +51,8 @@ fun ChapterDiscussion(chapterId: Int, onLogin: () -> Unit) {
     var replyTo by remember { mutableStateOf<ChapterCommentDto?>(null) }
     var notice by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
+    var reportTarget by remember { mutableStateOf<ChapterCommentDto?>(null) }
+    var reportReason by remember { mutableStateOf("Nội dung không phù hợp") }
     val scope = rememberCoroutineScope()
 
     suspend fun refresh() {
@@ -98,25 +107,39 @@ fun ChapterDiscussion(chapterId: Int, onLogin: () -> Unit) {
         else if (roots.isEmpty()) Text("Chưa có bình luận. Hãy bắt đầu cuộc trò chuyện.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         else roots.forEach { root ->
             CommentCard(root, onReply = { replyTo = root; draft = "" }, onReport = { comment ->
-                scope.launch {
-                    try {
-                        ApiClient.api.reportComment(comment.id, CreateCommentReportRequest("Nội dung không phù hợp"))
-                        notice = "Đã gửi báo cáo để quản trị viên xem xét."
-                    } catch (cause: Exception) { error = cause.toMessage() }
-                }
+                reportTarget = comment
             })
             comments.filter { it.parentCommentId == root.id }.forEach { reply ->
                 CommentCard(reply, isReply = true, onReply = {}, onReport = { comment ->
-                    scope.launch {
-                        try {
-                            ApiClient.api.reportComment(comment.id, CreateCommentReportRequest("Nội dung không phù hợp"))
-                            notice = "Đã gửi báo cáo để quản trị viên xem xét."
-                        } catch (cause: Exception) { error = cause.toMessage() }
-                    }
+                    reportTarget = comment
                 })
             }
-            Spacer(Modifier.height(4.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f))
         }
+    }
+    reportTarget?.let { target ->
+        AlertDialog(
+            onDismissRequest = { reportTarget = null },
+            title = { Text("Báo cáo bình luận") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Cho chúng tôi biết lý do để quản trị viên xem xét.", style = MaterialTheme.typography.bodyMedium)
+                    OutlinedTextField(value = reportReason, onValueChange = { reportReason = it }, label = { Text("Lý do") }, minLines = 2)
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = reportReason.isNotBlank(), onClick = {
+                    scope.launch {
+                        try {
+                            ApiClient.api.reportComment(target.id, CreateCommentReportRequest(reportReason.trim()))
+                            notice = "Đã gửi báo cáo để quản trị viên xem xét."
+                            reportTarget = null
+                        } catch (cause: Exception) { error = cause.toMessage() }
+                    }
+                }) { Text("Gửi báo cáo") }
+            },
+            dismissButton = { TextButton(onClick = { reportTarget = null }) { Text("Hủy") } }
+        )
     }
 }
 
@@ -128,12 +151,24 @@ private fun CommentCard(
     onReport: (ChapterCommentDto) -> Unit
 ) {
     val currentUserId = SessionManager.user?.id
-    Card(Modifier.fillMaxWidth().padding(start = if (isReply) 20.dp else 0.dp)) {
-        Column(Modifier.padding(12.dp)) {
-            Text(comment.author, fontWeight = FontWeight.SemiBold)
-            Text(comment.createdAt.take(10), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(6.dp))
-            Text(comment.content)
+    Row(
+        Modifier.fillMaxWidth().padding(start = if (isReply) 18.dp else 0.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            Modifier.size(if (isReply) 30.dp else 36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(comment.author.firstOrNull()?.uppercase() ?: "Đ", color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+        }
+        Column(Modifier.weight(1f)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(comment.author, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+                Text(comment.createdAt.take(10), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(comment.content, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
             if (!comment.isHidden && !comment.isDeleted) {
                 Row {
                     if (!isReply && currentUserId != null) TextButton(onClick = onReply) { Text("Trả lời") }

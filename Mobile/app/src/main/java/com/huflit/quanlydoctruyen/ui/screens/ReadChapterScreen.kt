@@ -20,6 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -114,8 +115,17 @@ fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: 
                 title = {
                     Text((state as? UiState.Success)?.data?.chapter?.storyTitle ?: "Đọc truyện", maxLines = 1, overflow = TextOverflow.Ellipsis)
                 },
-                navigationIcon = { TextButton(onClick = onBack) { Text("‹ Mục lục") } }
+                navigationIcon = { TextButton(onClick = onBack) { Text("‹ Mục lục") } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = background, titleContentColor = textColor, navigationIconContentColor = textColor)
             )
+        },
+        bottomBar = {
+            val chapter = (state as? UiState.Success)?.data?.chapter
+            if (chapter != null) {
+                Surface(color = background, tonalElevation = 2.dp) {
+                    ChapterNav(chapter, onGoTo, Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+                }
+            }
         }
     ) { padding ->
         Surface(Modifier.padding(padding).fillMaxSize(), color = background, contentColor = textColor) {
@@ -133,46 +143,45 @@ fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: 
                     LaunchedEffect(c.storyId, c.number) {
                         SessionManager.markEpisodeRead(c.storyId, c.number)
                     }
-                    Column(Modifier.verticalScroll(rememberScrollState(), true).padding(16.dp)) {
+                    Column(Modifier.verticalScroll(rememberScrollState(), true).padding(horizontal = 22.dp, vertical = 20.dp)) {
                         Text(
                             "Chương ${c.storyChapterNumber.takeIf { it > 0 } ?: c.number}${c.storyChapterTitle.takeIf { it.isNotBlank() }?.let { ": $it" }.orEmpty()} · Tập ${c.episodeNumber}: ${c.title}",
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                         )
                         if (s.data.isOffline) {
                             Text("Đang đọc bản đã lưu · Tiến độ sẽ đồng bộ khi có mạng", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp))
                         }
 
                         Row(
-                            Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            Modifier.fillMaxWidth().padding(vertical = 14.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             TextButton(onClick = { fontSize = (fontSize - 2).coerceAtLeast(14); SessionManager.readerFontSize = fontSize }) { Text("A-") }
-                            Text("$fontSize")
+                            Text("$fontSize", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
                             TextButton(onClick = { fontSize = (fontSize + 2).coerceAtMost(30); SessionManager.readerFontSize = fontSize }) { Text("A+") }
                             TextButton(onClick = { dark = !dark; SessionManager.readerDarkMode = dark }) {
                                 Text(if (dark) "Nền sáng" else "Nền tối")
                             }
                         }
 
-                        ChapterNav(c, onGoTo)
-                        if (s.data.isOffline) {
-                            Text("Bình luận sẽ hiển thị khi có kết nối mạng.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 12.dp))
-                        } else ChapterDiscussion(c.storyChapterId, onLogin)
+                        androidx.compose.material3.HorizontalDivider(color = textColor.copy(alpha = 0.12f))
 
                         c.content.split(Regex("\n+")).filter { it.isNotBlank() }.forEach { paragraph ->
                             Text(
                                 paragraph.trim(),
                                 fontSize = fontSize.sp,
-                                lineHeight = (fontSize * 1.7f).sp,
-                                modifier = Modifier.padding(vertical = 8.dp)
+                                lineHeight = (fontSize * 1.85f).sp,
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
                             )
                         }
 
-                        ChapterNav(c, onGoTo)
+                        if (s.data.isOffline) {
+                            Text("Bình luận sẽ hiển thị khi có kết nối mạng.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 20.dp))
+                        } else ChapterDiscussion(c.storyChapterId, onLogin)
                     }
                 }
             }
@@ -181,8 +190,8 @@ fun ReadChapterScreen(storyId: Int, number: Int, onGoTo: (Int) -> Unit, onBack: 
 }
 
 @Composable
-private fun ChapterNav(c: ChapterContent, onGoTo: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+private fun ChapterNav(c: ChapterContent, onGoTo: (Int) -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(
             onClick = { c.prevNumber?.let(onGoTo) },
             enabled = c.prevNumber != null,

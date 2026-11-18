@@ -17,6 +17,7 @@ const adminLinks = [
 
 export default function AdminLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -25,16 +26,20 @@ export default function AdminLayout() {
     navigate("/account", { replace: true });
   }
 
-  return <div className="admin-app">
+  return <div className={`admin-app${sidebarCollapsed ? " is-sidebar-collapsed" : ""}`}>
     <header className="admin-topbar">
-      <div className="admin-topbar__brand"><button className="admin-menu-toggle" type="button" aria-expanded={menuOpen} aria-label={menuOpen ? "Đóng danh mục" : "Mở danh mục"} onClick={() => setMenuOpen(value => !value)}><span /><span /><span /></button><span className="admin-topbar__label">KHÔNG GIAN QUẢN TRỊ</span><strong>Đọc<span>Truyện</span></strong></div>
+      <div className="admin-topbar__brand">
+        <button className="admin-sidebar-toggle" type="button" aria-controls="admin-navigation" aria-expanded={!sidebarCollapsed} aria-label={sidebarCollapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"} onClick={() => setSidebarCollapsed(value => !value)}><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h14" /></svg></button>
+        <button className="admin-menu-toggle" type="button" aria-controls="admin-navigation" aria-expanded={menuOpen} aria-label={menuOpen ? "Đóng danh mục" : "Mở danh mục"} onClick={() => setMenuOpen(value => !value)}><span /><span /><span /></button>
+        <span className="admin-topbar__label"></span><strong>Đọc<span>Truyện</span></strong>
+      </div>
       <div className="admin-topbar__user"><span>{user?.username}</span><button type="button" onClick={logout}>Đăng xuất</button></div>
     </header>
     <div className="admin-shell">
-      <aside className={`admin-sidebar${menuOpen ? " is-open" : ""}`}>
+      <aside id="admin-navigation" className={`admin-sidebar${menuOpen ? " is-open" : ""}`}>
         <p className="admin-sidebar__label">QUẢN LÝ THƯ VIỆN</p>
-        <nav aria-label="Điều hướng quản trị">{adminLinks.map(item => <NavLink key={item.to} to={item.to} end={item.end} onClick={() => setMenuOpen(false)} className={({ isActive }) => `admin-sidebar__link${isActive ? " is-active" : ""}`}><span>{item.mark}</span>{item.label}</NavLink>)}</nav>
-        <div className="admin-sidebar__bottom"><NavLink to="/" className="admin-sidebar__back">← Trở về thư viện</NavLink><span>Bookread · Admin</span></div>
+        <nav aria-label="Điều hướng quản trị">{adminLinks.map(item => <NavLink key={item.to} title={item.label} aria-label={item.label} to={item.to} end={item.end} onClick={() => setMenuOpen(false)} className={({ isActive }) => `admin-sidebar__link${isActive ? " is-active" : ""}`}><span>{item.mark}</span>{item.label}</NavLink>)}</nav>
+        <div className="admin-sidebar__bottom"><NavLink to="/" className="admin-sidebar__back"><span className="admin-sidebar__back-mark">←</span><span className="admin-sidebar__back-label">Trở về thư viện</span></NavLink><span>Bookread · Admin</span></div>
       </aside>
       {menuOpen && <button className="admin-sidebar-scrim" aria-label="Đóng danh mục" type="button" onClick={() => setMenuOpen(false)} />}
       <main className="admin-content"><Outlet /></main>

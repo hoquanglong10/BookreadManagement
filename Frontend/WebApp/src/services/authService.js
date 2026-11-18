@@ -16,6 +16,7 @@ export function validateLogin({ username, password }) {
   const isUsername = /^[A-Za-z0-9]{3,30}$/.test(account);
   const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(account);
   if (!isUsername && !isEmail) return "Tài khoản chỉ gồm chữ, số hoặc một địa chỉ email hợp lệ.";
+  if (!/^[A-Za-z0-9]+$/.test(password)) return "Mật khẩu chỉ được gồm chữ không dấu và số.";
   return "";
 }
 
@@ -24,6 +25,7 @@ export function validateRegistration({ username, email, password, confirmPasswor
     return "Tên đăng nhập cần 3–30 ký tự, chỉ gồm chữ không dấu và số.";
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return "Vui lòng nhập email hợp lệ.";
+  if (!/^[A-Za-z0-9]+$/.test(password)) return "Mật khẩu chỉ được gồm chữ không dấu và số.";
   if (password.length < 8 || password.length > 128) return "Mật khẩu phải dài từ 8 đến 128 ký tự.";
   if (password !== confirmPassword) return "Mật khẩu nhập lại chưa khớp.";
   return "";

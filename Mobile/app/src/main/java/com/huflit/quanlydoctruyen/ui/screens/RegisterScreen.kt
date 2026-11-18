@@ -47,6 +47,8 @@ fun RegisterScreen(onSuccess: () -> Unit, onBack: () -> Unit) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirm by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var confirmVisible by rememberSaveable { mutableStateOf(false) }
 
     var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var serverError by remember { mutableStateOf<String?>(null) }
@@ -105,10 +107,12 @@ fun RegisterScreen(onSuccess: () -> Unit, onBack: () -> Unit) {
         Column(
             Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)
         ) {
+            Text("Tạo tài khoản", style = MaterialTheme.typography.headlineSmall, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            Text("Lưu tiến độ đọc và theo dõi truyện mới.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
             Field("Tên đăng nhập", username, { username = it }, errors["username"])
             Field("Email", email, { email = it }, errors["email"], keyboardType = KeyboardType.Email)
-            Field("Mật khẩu", password, { password = it }, errors["password"], isPassword = true)
-            Field("Nhập lại mật khẩu", confirm, { confirm = it }, errors["confirm"], isPassword = true)
+            Field("Mật khẩu", password, { password = it }, errors["password"], isPassword = true, visible = passwordVisible, onToggleVisibility = { passwordVisible = !passwordVisible })
+            Field("Nhập lại mật khẩu", confirm, { confirm = it }, errors["confirm"], isPassword = true, visible = confirmVisible, onToggleVisibility = { confirmVisible = !confirmVisible })
 
             if (serverError != null) {
                 Text(serverError!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 4.dp))
@@ -130,7 +134,9 @@ private fun Field(
     onChange: (String) -> Unit,
     error: String?,
     isPassword: Boolean = false,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    visible: Boolean = false,
+    onToggleVisibility: () -> Unit = {}
 ) {
     OutlinedTextField(
         value = value,
@@ -139,8 +145,9 @@ private fun Field(
         singleLine = true,
         isError = error != null,
         supportingText = { if (error != null) Text(error) },
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (isPassword && !visible) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(keyboardType = if (isPassword) KeyboardType.Password else keyboardType),
+        trailingIcon = if (isPassword) ({ TextButton(onClick = onToggleVisibility) { Text(if (visible) "Ẩn" else "Hiện") } }) else null,
         modifier = Modifier.fillMaxWidth()
     )
 }
